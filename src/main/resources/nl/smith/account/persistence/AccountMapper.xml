@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="nl.smith.account.persistence.AccountMapper">
+	<!-- <resultMap id="bamcerResult" type="nl.smith.account.domain.Mutation" autoMapping="true">
+		<id property="bamcerId" column="bamcerid" />
+		<result property="straatEnNummer" column="adres" />
+		<result property="studentId" column="studentid" />
+		<association property="grondslag" javaType="amc.mb.bamc.domain.Grondslag" resultMap="grondslagResultKort" />
+		<association property="grondslag" column="grondslagid" javaType="amc.mb.bamc.domain.Grondslag" resultMap="GrondslagResultKort" notNullColumn="grondslagid"/>
+	</resultMap> -->
+
+	<insert id="persist" parameterType="nl.smith.account.domain.Mutation">
+		<selectKey keyProperty="id" resultType="int" order="BEFORE">SELECT nextval('account.mutation_id_seq')</selectKey>
+		INSERT INTO account.mutation(
+		id
+		, accountnumber
+		, currency
+		, interestdate
+		, balancebefore
+		, balanceafter
+		, transactiondate
+		, amount
+		, description
+		)
+		VALUES(
+		#{id}
+		, #{accountNumber}
+		, #{currency}
+		, #{interestDate}
+		, #{balanceBefore}
+		, #{balanceAfter}
+		, #{transactionDate}
+		, #{amount}
+		, #{description}
+		);
+	</insert>
+
+</mapper>
