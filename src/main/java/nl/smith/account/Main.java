@@ -18,13 +18,8 @@ public abstract class Main implements CommandLineRunner {
         SpringApplication springApplication = new SpringApplication(Main.class);
         springApplication.setBannerMode(Banner.Mode.OFF);
         springApplication.run(args);
-        // System.out.println(app.getMainApplicationClass());
-        // app.get
-
     }
 
-    // Put your logic here.
-    // @Override
     public void run(String... args) throws Exception {
         importService.importFromFile("/home/mark/Downloads/TXT170929134202.TAB");
         System.exit(0);

@@ -6,6 +6,7 @@ import org.apache.tomcat.jdbc.pool.DataSource;
 import org.mybatis.spring.annotation.MapperScan;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -20,16 +21,17 @@ public class DbConfig {
     public static final String SQL_SESSION_FACTORY_NAME_BAMC = "sqlSessionFactoryBamc";
 
     @Bean()
-    public DataSource dataSource() {
+    public DataSource dataSource(@Value("${spring.datasource.url}") String url, @Value("${spring.datasource.user}") String user,
+            @Value("${spring.datasource.password}") String password) {
         DataSource dataSource = new DataSource();
         dataSource.setDriverClassName("org.postgresql.Driver");
 
-        dataSource.setPassword("25Colisa labiosa");
+        dataSource.setUrl(url);
+        dataSource.setUsername(user);
+        dataSource.setPassword(password);
+
         dataSource.setInitSQL("set search_path=accounts");
         dataSource.setName("Accounts");
-
-        dataSource.setUrl("jdbc:postgresql:msmith");
-        dataSource.setUsername("mark");
 
         try {
             dataSource.getConnection();
