@@ -30,7 +30,7 @@ public class DbConfig {
         dataSource.setUsername(user);
         dataSource.setPassword(password);
 
-        dataSource.setInitSQL("set search_path=accounts");
+        dataSource.setInitSQL("set search_path=account");
         dataSource.setName("Accounts");
 
         try {

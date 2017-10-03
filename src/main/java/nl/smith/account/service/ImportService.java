@@ -34,6 +34,7 @@ public class ImportService {
         Pattern pattern = Pattern.compile(Column.getRegex(columns));
         Path path = Paths.get(filePath);
         List<String> records = Files.readAllLines(path);
+        LOGGER.info("Read {} mutations.", records.size());
         records.forEach(record -> process(pattern, columns, record));
     }
 
