@@ -6,7 +6,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,21 +31,30 @@ public class ImportService {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(ImportService.class);
 
+    private void removeTransactions() {
+        accountMapper.deleteAll();
+    }
+
     public void importFromFile(String filePath) throws IOException {
+        removeTransactions();
+
         List<Column> columns = buildColumns();
 
         Pattern pattern = Pattern.compile(Column.getRegex(columns));
         Path path = Paths.get(filePath);
         List<String> records = Files.readAllLines(path);
-        LOGGER.info("Read {} mutations.", records.size());
-        records.forEach(record -> process(pattern, columns, record));
+        if (!records.isEmpty()) {
+            LOGGER.info("Read {} mutations.", records.size());
+            records.forEach(record -> accountMapper.persist(getMutationFromString(pattern, columns, record)));
+            postProcess();
+        }
     }
 
-    private void process(Pattern pattern, List<Column> columns, String record) {
+    private Mutation getMutationFromString(Pattern pattern, List<Column> columns, String record) {
         Matcher matcher = pattern.matcher(record);
         if (matcher.matches()) {
          // @formatter:off
-            Mutation mutation = Mutation.MutationBuilder.create()
+            return Mutation.MutationBuilder.create()
             .setAccountNumber(matcher.group((int) columns.get(0).groupPosition))
             .setCurrency(matcher.group((int) columns.get(1).groupPosition))
             .setTransactionDate(matcher.group((int) columns.get(2).groupPosition))
@@ -53,13 +65,28 @@ public class ImportService {
             .setDescription(matcher.group((int) columns.get(7).groupPosition))
             .get();
              // @formatter:on
-
-            accountMapper.persist(mutation);
-
         } else {
             LOGGER.info("Could not process: {}", record);
             throw new IllegalArgumentException(String.format("Could not process: %s", record));
         }
+    }
+
+    private void postProcess() {
+        List<Date> transactionDatesToBePostProcessed = accountMapper.getTransactionDatesToBePostProcessed();
+
+        transactionDatesToBePostProcessed.forEach(date -> {
+            List<Integer> mutationIdsToBeprocessedForDate = accountMapper.getMutationIdsToBeprocessedForDate(date);
+            LOGGER.info("Postprocess {} mutations for date {}.", mutationIdsToBeprocessedForDate.size(), date);
+
+            int ordernumber = 0;
+            for (Integer id : mutationIdsToBeprocessedForDate) {
+                Map<String, Integer> parameterMap = new HashMap<>();
+                parameterMap.put("id", id);
+                parameterMap.put("ordernumber", ++ordernumber);
+                accountMapper.setOrdernumberForMutationWithId(parameterMap);
+            }
+        });
+
     }
 
     private static List<Column> buildColumns() {
