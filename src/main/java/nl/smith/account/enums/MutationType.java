@@ -3,16 +3,16 @@ package nl.smith.account.enums;
 import nl.smith.account.annotation.PersistedEnum;
 
 @PersistedEnum
-public enum Currency implements AbstractEnum {
+public enum MutationType implements AbstractEnum {
 
-	EUR("EUR", "Valuta: Euro"),
-	GBP("GBP", "Valuta: United Kingdom Pound");
+	DEBET("DEBET", "DEBET: Withdraw from account"),
+	CREDIT("CREDIT", "CREDIT: Add to account");
 
     private String code;
 
     private String description;
 
-    Currency(String code, String description) {
+    MutationType(String code, String description) {
         this.code = code;
         this.description = description;
     }

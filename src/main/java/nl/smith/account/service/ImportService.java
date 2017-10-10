@@ -26,10 +26,15 @@ import nl.smith.account.persistence.AccountMapper;
 @Transactional
 public class ImportService {
 
-    @Autowired
-    private AccountMapper accountMapper;
+    private final AccountMapper accountMapper;
 
     private final static Logger LOGGER = LoggerFactory.getLogger(ImportService.class);
+
+    @Autowired
+    public ImportService(AccountMapper accountMapper) {
+        super();
+        this.accountMapper = accountMapper;
+    }
 
     private void removeTransactions() {
         accountMapper.deleteAll();
@@ -142,11 +147,13 @@ public class ImportService {
         private static String getRegex(List<Column> columns) {
             List<String> elements = new ArrayList<>();
             columns.forEach(column -> {
+                LOGGER.info("Processing structure column '{}'.", column.name);
                 long numberOfGroups = String.join("", elements).chars().filter(ch -> ch == '(').count();
                 column.groupPosition = numberOfGroups + 1;
                 elements.add("(" + column.columnType.regex + ")");
 
             });
+
             return String.join(REGEX_FIELDSEPERATOR, elements);
 
         }

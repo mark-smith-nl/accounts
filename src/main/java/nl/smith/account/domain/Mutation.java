@@ -27,6 +27,8 @@ public class Mutation {
 
     private String description;
 
+    private Integer ordernumber;
+
     private Mutation() {
 
     }
@@ -101,6 +103,10 @@ public class Mutation {
 
     public Integer getId() {
         return id;
+    }
+
+    public Integer getOrdernumber() {
+        return ordernumber;
     }
 
     @Override

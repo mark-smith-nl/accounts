@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="nl.smith.account.persistence.AbstractEnumMapper">
+	<select id="getEnumByClassNameAndValue" parameterType="map"
+		resultType="map">
+		SELECT
+		className
+		, name
+		, description
+		FROM
+		account.enum
+		WHERE
+		className = #{className}
+		AND name = #{name}
+	</select>
+
+	<select id="persist" parameterType="map">
+		INSERT INTO account.enum(className, name, description)
+		VALUES (
+		#{className}
+		, #{name}
+		, #{description}
+		)
+	</select>
+
+	<update id="update" parameterType="map">
+		UPDATE account.enum
+		SET description = #{description}
+		WHERE
+		className = #{className}
+		AND name = #{name}
+	</update>
+</mapper>
