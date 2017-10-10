@@ -4,30 +4,26 @@
 	<select id="getEnumByClassNameAndValue" parameterType="map"
 		resultType="map">
 		SELECT
-		className
-		, name
+		name
 		, description
 		FROM
-		account.enum
+		account.#{enumClassname}
 		WHERE
-		className = #{className}
-		AND name = #{name}
+		name = #{name}
 	</select>
 
 	<select id="persist" parameterType="map">
-		INSERT INTO account.enum(className, name, description)
+		INSERT INTO account.#{enumClassname}(name, description)
 		VALUES (
-		#{className}
-		, #{name}
+        #{name}
 		, #{description}
 		)
 	</select>
 
 	<update id="update" parameterType="map">
-		UPDATE account.enum
+		UPDATE account.#{enumClassname}
 		SET description = #{description}
 		WHERE
-		className = #{className}
-		AND name = #{name}
+		name = #{name}
 	</update>
 </mapper>

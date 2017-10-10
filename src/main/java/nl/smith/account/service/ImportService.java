@@ -26,9 +26,9 @@ import nl.smith.account.persistence.AccountMapper;
 @Transactional
 public class ImportService {
 
+	private final static Logger LOGGER = LoggerFactory.getLogger(ImportService.class);
+	
     private final AccountMapper accountMapper;
-
-    private final static Logger LOGGER = LoggerFactory.getLogger(ImportService.class);
 
     @Autowired
     public ImportService(AccountMapper accountMapper) {

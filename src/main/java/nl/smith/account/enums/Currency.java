@@ -5,29 +5,30 @@ import nl.smith.account.annotation.PersistedEnum;
 @PersistedEnum
 public enum Currency implements AbstractEnum {
 
-	EUR("EUR", "Valuta: Euro"),
-	GBP("GBP", "Valuta: United Kingdom Pound");
+	HFL("HFL", "Valuta: Gulden (Oud)"), EUR("EUR", "Valuta: Euro"), GBP("GBP", "Valuta: United Kingdom Pound");
 
-    private String code;
+	private String code;
 
-    private String description;
+	private String description;
 
-    Currency(String code, String description) {
-        this.code = code;
-        this.description = description;
-    }
+	Currency(String code, String description) {
+		this.code = code;
+		this.description = description;
+	}
 
-    public String getCode() {
-        return code;
-    }
+	@Override
+	public String getCode() {
+		return code;
+	}
 
-    @Override
-    public String getDescription() {
-        return description;
-    }
+	@Override
+	public String getDescription() {
+		return description;
+	}
 
-    public String toString() {
-        return this.name() + "{" + "code: '" + code + "', " + "description: '" + description + "'" + "}";
-    }
+	@Override
+	public String toString() {
+		return this.name() + "{" + "code: '" + code + "', " + "description: '" + description + "'" + "}";
+	}
 
 }

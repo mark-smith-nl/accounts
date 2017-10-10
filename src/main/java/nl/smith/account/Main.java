@@ -21,9 +21,8 @@ public abstract class Main implements CommandLineRunner {
     }
 
     public void run(String... args) throws Exception {
-        importService.importFromFile("/home/mark/Downloads/TXT170929134202.TAB");
+      //  importService.importFromFile("/home/mark/Downloads/TXT170929134202.TAB");
         System.exit(0);
-        ;
     }
 
 }
