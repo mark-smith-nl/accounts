@@ -42,24 +42,28 @@ public class EnumService {
 
 		InputStream inputStream = this.getClass().getResourceAsStream("createEnumTable.sql");
 		InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-		String sqlCreateEnumTable = FileCopyUtils.copyToString(inputStreamReader);
+		String createEnumTableSql = FileCopyUtils.copyToString(inputStreamReader);
 
-		inputStream = this.getClass().getResourceAsStream("getEnumByValue.sql");
+		inputStream = this.getClass().getResourceAsStream("deactivateAllEnums.sql");
 		inputStreamReader = new InputStreamReader(inputStream);
-		String sqlGetEnumByValue = FileCopyUtils.copyToString(inputStreamReader);
+		String deactivateAllEnumsSql = FileCopyUtils.copyToString(inputStreamReader);
+
+		inputStream = this.getClass().getResourceAsStream("getEnum.sql");
+		inputStreamReader = new InputStreamReader(inputStream);
+		String getEnumSql = FileCopyUtils.copyToString(inputStreamReader);
 
 		inputStream = this.getClass().getResourceAsStream("persistEnum.sql");
 		inputStreamReader = new InputStreamReader(inputStream);
-		String sqlPersistEnum = FileCopyUtils.copyToString(inputStreamReader);
+		String persistEnumSql = FileCopyUtils.copyToString(inputStreamReader);
 
 		inputStream = this.getClass().getResourceAsStream("updateEnum.sql");
 		inputStreamReader = new InputStreamReader(inputStream);
-		String sqlUpdateEnum = FileCopyUtils.copyToString(inputStreamReader);
+		String updateEnumSql = FileCopyUtils.copyToString(inputStreamReader);
 
 		// getEnumByValue.sql
 		annotatedClasses.forEach(annotatedClass -> {
-			createTableIfNotExistsForEnum(sqlCreateEnumTable, annotatedClass);
-			updateTableForEnum(annotatedClass, sqlGetEnumByValue, sqlPersistEnum, sqlUpdateEnum);
+
+			updateEnums(annotatedClass, createEnumTableSql, deactivateAllEnumsSql, getEnumSql, persistEnumSql, updateEnumSql);
 		});
 
 	}
@@ -74,61 +78,59 @@ public class EnumService {
 				String beanClassName = candidateComponent.getBeanClassName();
 				annotatedClasses.add((Class<Enum<?>>) Class.forName(beanClassName));
 			} catch (ClassNotFoundException e) {
-				// TODO: handle exception
+				throw new IllegalStateException("An unexpected error occurred.", e);
 			}
 		});
 
 		return annotatedClasses;
 	}
 
-	private Object createTableIfNotExistsForEnum(String sqlCreateEnumTable, Class<Enum<?>> annotatedClass) {
-		LOGGER.info("Create table for enum {} if not existing.", annotatedClass.getCanonicalName());
+	public void updateEnums(Class<Enum<?>> annotatedClass, String createEnumTableSql, String deactivateAllEnums, String getEnumSql, String persistEnumSql, String updateEnumSql) {
 
-		String sql = sqlCreateEnumTable.replaceFirst("\\$\\{enumClassname\\}", annotatedClass.getSimpleName());
-
+		String sql = createEnumTableSql.replaceFirst("\\$\\{enumClassname\\}", annotatedClass.getSimpleName());
 		jdbcTemplate.execute(sql);
+		LOGGER.info("Created table for enum {} if not existing.", annotatedClass.getCanonicalName());
 
-		return null;
-	}
-
-	public void updateTableForEnum(Class<Enum<?>> annotatedClass, String sqlGetEnumByValue, String sqlPersistEnum,
-			String sqlUpdateEnum) {
+		sql = deactivateAllEnums.replaceFirst("\\$\\{enumClassname\\}", annotatedClass.getSimpleName());
+		jdbcTemplate.execute(sql);
+		LOGGER.info("Deactivated entries in table for enum {} if not existing.", annotatedClass.getCanonicalName());
 
 		Arrays.asList(annotatedClass.getEnumConstants()).forEach(constant -> {
 			String enumClassname = annotatedClass.getSimpleName();
 			String name = ((Enum<?>) constant).name();
 			String description = ((AbstractEnum) constant).getDescription();
 
-			String sql = sqlGetEnumByValue.replaceFirst("\\$\\{enumClassname\\}", enumClassname);
-			sql = sql.replaceFirst("\\$\\{name\\}", name);
-			List<EnumConstant> enumConstants = jdbcTemplate.query(sql, new RowMapper<EnumConstant>() {
+			String sqlEntry = getEnumSql.replaceFirst("\\$\\{enumClassname\\}", enumClassname).replaceFirst("\\$\\{name\\}", name);
+
+			List<EnumConstant> enumConstants = jdbcTemplate.query(sqlEntry, new RowMapper<EnumConstant>() {
 
 				@Override
 				public EnumConstant mapRow(ResultSet result, int rowNum) throws SQLException {
-					EnumConstant enumConstant = new EnumConstant(result.getString("name"),
-							result.getString("description"));
+					EnumConstant enumConstant = new EnumConstant(result.getString("name"), result.getString("description"), result.getBoolean("active"));
 					return enumConstant;
 				}
 
 			});
 
-			LOGGER.info("Times enum {}.{} found: {}", annotatedClass.getCanonicalName(), name, enumConstants.size());
 			switch (enumConstants.size()) {
 			case 0:
-				sql = sqlPersistEnum.replaceFirst("\\$\\{enumClassname\\}", annotatedClass.getSimpleName());
-				sql = sql.replaceFirst("\\$\\{name\\}", name);
-				sql = sql.replaceFirst("\\$\\{description\\}", description);
+				// @formatter:off
+				sqlEntry = persistEnumSql.replaceFirst("\\$\\{enumClassname\\}", annotatedClass.getSimpleName())
+						.replaceFirst("\\$\\{name\\}", name)
+						.replaceFirst("\\$\\{description\\}", description);
+				// @formatter:on
 
-				jdbcTemplate.execute(sql);
+				jdbcTemplate.execute(sqlEntry);
 				LOGGER.info("Created enum {}.{}. Description: {}", enumClassname, name, description);
 				break;
 			case 1:
-				if (!description.equals(enumConstants.get(0).getDescription())) {
-					sql = sqlUpdateEnum.replaceFirst("\\$\\{enumClassname\\}", annotatedClass.getSimpleName());
-					sql = sql.replaceFirst("\\$\\{name\\}", name);
-					sql = sql.replaceFirst("\\$\\{description\\}", description);
-
-					jdbcTemplate.execute(sql);
+				if (!description.equals(enumConstants.get(0).getDescription()) || !enumConstants.get(0).active) {
+					// @formatter:off
+					sqlEntry = updateEnumSql.replaceFirst("\\$\\{enumClassname\\}", annotatedClass.getSimpleName())
+							.replaceFirst("\\$\\{name\\}", name)
+							.replaceFirst("\\$\\{description\\}", description);
+					// @formatter:on
+					jdbcTemplate.execute(sqlEntry);
 					LOGGER.info("Updated enum {}.{}. Description: {}", enumClassname, name, description);
 				} else {
 					LOGGER.info("No Update needed for enum {}.{}. Description: {}", enumClassname, name, description);
@@ -141,21 +143,25 @@ public class EnumService {
 
 	}
 
-	private class EnumConstant {
+	private class EnumConstant implements AbstractEnum {
 
 		private final String name;
 
 		private final String description;
 
-		public EnumConstant(String name, String description) {
+		private final boolean active;
+
+		public EnumConstant(String name, String description, boolean active) {
 			this.name = name;
 			this.description = description;
+			this.active = active;
 		}
 
 		public String getName() {
 			return name;
 		}
 
+		@Override
 		public String getDescription() {
 			return description;
 		}

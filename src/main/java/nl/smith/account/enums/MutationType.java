@@ -5,29 +5,18 @@ import nl.smith.account.annotation.PersistedEnum;
 @PersistedEnum
 public enum MutationType implements AbstractEnum {
 
-	DEBET("DEBET", "DEBET: Withdraw from account"),
-	CREDIT("CREDIT", "CREDIT: Add to account");
+	DEBET("DEBET: Withdraw from account"),
+	CREDIT("CREDIT: Add to account");
 
-    private String code;
+	private String description;
 
-    private String description;
+	MutationType(String description) {
+		this.description = description;
+	}
 
-    MutationType(String code, String description) {
-        this.code = code;
-        this.description = description;
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    @Override
-    public String getDescription() {
-        return description;
-    }
-
-    public String toString() {
-        return this.name() + "{" + "code: '" + code + "', " + "description: '" + description + "'" + "}";
-    }
+	@Override
+	public String getDescription() {
+		return description;
+	}
 
 }
