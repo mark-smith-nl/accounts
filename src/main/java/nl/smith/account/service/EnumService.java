@@ -61,11 +61,7 @@ public class EnumService {
 		inputStreamReader = new InputStreamReader(inputStream);
 		String updateEnumSql = FileCopyUtils.copyToString(inputStreamReader);
 
-		// getEnumByValue.sql
-		annotatedClasses.forEach(annotatedClass -> {
-
-			updateEnums(annotatedClass, createEnumTableSql, deactivateAllEnumsSql, getEnumSql, persistEnumSql, updateEnumSql);
-		});
+		annotatedClasses.forEach(annotatedClass -> updateEnums(annotatedClass, createEnumTableSql, deactivateAllEnumsSql, getEnumSql, persistEnumSql, updateEnumSql));
 
 	}
 
@@ -97,7 +93,7 @@ public class EnumService {
 		jdbcTemplate.execute(sql);
 		LOGGER.info("Deactivated entries in table for enum {} if not existing.", annotatedEnumClass.getCanonicalName());
 
-		// validateEnumConstants(annotatedEnumClass);
+		validateEnumConstants(annotatedEnumClass);
 
 		Arrays.asList(annotatedEnumClass.getEnumConstants()).forEach(constant -> {
 			String enumClassname = annotatedEnumClass.getSimpleName();
