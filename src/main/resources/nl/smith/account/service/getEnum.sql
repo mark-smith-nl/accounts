@@ -1,5 +1,6 @@
 SELECT
 	name
+	, isdefault
 	, description
 	, active
 FROM account.${enumClassname}

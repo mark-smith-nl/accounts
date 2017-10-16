@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
@@ -38,7 +39,7 @@ public class EnumService {
 
 	@PostConstruct
 	private void persistEnums() throws IOException {
-		List<Class<Enum<?>>> annotatedClasses = findAnnotatedClasses();
+		List<Class<Enum<?>>> annotatedClasses = findAnnotatedEnumClasses();
 
 		InputStream inputStream = this.getClass().getResourceAsStream("createEnumTable.sql");
 		InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
@@ -68,67 +69,75 @@ public class EnumService {
 
 	}
 
-	public List<Class<Enum<?>>> findAnnotatedClasses() {
-		List<Class<Enum<?>>> annotatedClasses = new ArrayList<>();
+	public List<Class<Enum<?>>> findAnnotatedEnumClasses() {
+		List<Class<Enum<?>>> annotatedEnumClasses = new ArrayList<>();
 
 		ClassPathScanningCandidateComponentProvider provider = new ClassPathScanningCandidateComponentProvider(false);
 		provider.addIncludeFilter(new AnnotationTypeFilter(PersistedEnum.class));
 		provider.findCandidateComponents("nl.smith").forEach(candidateComponent -> {
 			try {
 				String beanClassName = candidateComponent.getBeanClassName();
-				annotatedClasses.add((Class<Enum<?>>) Class.forName(beanClassName));
+				annotatedEnumClasses.add((Class<Enum<?>>) Class.forName(beanClassName));
 			} catch (ClassNotFoundException e) {
 				throw new IllegalStateException("An unexpected error occurred.", e);
 			}
 		});
 
-		return annotatedClasses;
+		return annotatedEnumClasses;
 	}
 
-	public void updateEnums(Class<Enum<?>> annotatedClass, String createEnumTableSql, String deactivateAllEnums, String getEnumSql, String persistEnumSql, String updateEnumSql) {
+	public void updateEnums(Class<Enum<?>> annotatedEnumClass, String createEnumTableSql, String deactivateAllEnums, String getEnumSql, String persistEnumSql,
+			String updateEnumSql) {
 
-		String sql = createEnumTableSql.replaceFirst("\\$\\{enumClassname\\}", annotatedClass.getSimpleName());
+		String sql = createEnumTableSql.replaceAll("\\$\\{enumClassname\\}", annotatedEnumClass.getSimpleName());
 		jdbcTemplate.execute(sql);
-		LOGGER.info("Created table for enum {} if not existing.", annotatedClass.getCanonicalName());
+		LOGGER.info("Created table for enum {} if not existing.", annotatedEnumClass.getCanonicalName());
 
-		sql = deactivateAllEnums.replaceFirst("\\$\\{enumClassname\\}", annotatedClass.getSimpleName());
+		sql = deactivateAllEnums.replaceAll("\\$\\{enumClassname\\}", annotatedEnumClass.getSimpleName());
 		jdbcTemplate.execute(sql);
-		LOGGER.info("Deactivated entries in table for enum {} if not existing.", annotatedClass.getCanonicalName());
+		LOGGER.info("Deactivated entries in table for enum {} if not existing.", annotatedEnumClass.getCanonicalName());
 
-		Arrays.asList(annotatedClass.getEnumConstants()).forEach(constant -> {
-			String enumClassname = annotatedClass.getSimpleName();
+		// validateEnumConstants(annotatedEnumClass);
+
+		Arrays.asList(annotatedEnumClass.getEnumConstants()).forEach(constant -> {
+			String enumClassname = annotatedEnumClass.getSimpleName();
 			String name = ((Enum<?>) constant).name();
+			boolean isDefault = ((AbstractEnum) constant).isDefault();
 			String description = ((AbstractEnum) constant).getDescription();
 
-			String sqlEntry = getEnumSql.replaceFirst("\\$\\{enumClassname\\}", enumClassname).replaceFirst("\\$\\{name\\}", name);
+			String sqlEntry = getEnumSql.replaceAll("\\$\\{enumClassname\\}", enumClassname).replaceAll("\\$\\{name\\}", name);
 
-			List<EnumConstant> enumConstants = jdbcTemplate.query(sqlEntry, new RowMapper<EnumConstant>() {
+			List<PersistedEnumConstant> persistedEnumConstants = jdbcTemplate.query(sqlEntry, new RowMapper<PersistedEnumConstant>() {
 
 				@Override
-				public EnumConstant mapRow(ResultSet result, int rowNum) throws SQLException {
-					EnumConstant enumConstant = new EnumConstant(result.getString("name"), result.getString("description"), result.getBoolean("active"));
-					return enumConstant;
+				public PersistedEnumConstant mapRow(ResultSet result, int rowNum) throws SQLException {
+					PersistedEnumConstant persistedEnumConstant = new PersistedEnumConstant(result.getString("name"), result.getBoolean("isdefault"),
+							result.getString("description"), result.getBoolean("active"));
+					return persistedEnumConstant;
 				}
 
 			});
 
-			switch (enumConstants.size()) {
+			switch (persistedEnumConstants.size()) {
 			case 0:
 				// @formatter:off
-				sqlEntry = persistEnumSql.replaceFirst("\\$\\{enumClassname\\}", annotatedClass.getSimpleName())
-						.replaceFirst("\\$\\{name\\}", name)
-						.replaceFirst("\\$\\{description\\}", description);
+				sqlEntry = persistEnumSql.replaceAll("\\$\\{enumClassname\\}", annotatedEnumClass.getSimpleName())
+						.replaceAll("\\$\\{name\\}", name)
+						.replaceAll("\\$\\{isdefault\\}", String.valueOf(isDefault))
+						.replaceAll("\\$\\{description\\}", description);
 				// @formatter:on
 
 				jdbcTemplate.execute(sqlEntry);
 				LOGGER.info("Created enum {}.{}. Description: {}", enumClassname, name, description);
 				break;
 			case 1:
-				if (!description.equals(enumConstants.get(0).getDescription()) || !enumConstants.get(0).active) {
+				PersistedEnumConstant persistedEnumConstant = persistedEnumConstants.get(0);
+				if (isDefault != persistedEnumConstant.isDefault() || !description.equals(persistedEnumConstant.getDescription()) || !persistedEnumConstant.isActive()) {
 					// @formatter:off
-					sqlEntry = updateEnumSql.replaceFirst("\\$\\{enumClassname\\}", annotatedClass.getSimpleName())
-							.replaceFirst("\\$\\{name\\}", name)
-							.replaceFirst("\\$\\{description\\}", description);
+					sqlEntry = updateEnumSql.replaceAll("\\$\\{enumClassname\\}", annotatedEnumClass.getSimpleName())
+							.replaceAll("\\$\\{name\\}", name)
+							.replaceAll("\\$\\{isdefault\\}", String.valueOf(isDefault))
+							.replaceAll("\\$\\{description\\}", description);
 					// @formatter:on
 					jdbcTemplate.execute(sqlEntry);
 					LOGGER.info("Updated enum {}.{}. Description: {}", enumClassname, name, description);
@@ -143,22 +152,43 @@ public class EnumService {
 
 	}
 
-	private class EnumConstant implements AbstractEnum {
+	private void validateEnumConstants(Class<Enum<?>> annotatedEnumClass) {
+
+		List<Enum<?>> collect = Arrays.asList(annotatedEnumClass.getEnumConstants()).stream().filter(c -> ((AbstractEnum) c).isDefault()).collect(Collectors.toList());
+
+		if (collect.size() > 1) {
+			List<String> names = new ArrayList<>();
+			collect.forEach(c -> names.add(c.name()));
+			String error = String.format("The enum class %s has multiple values set as default (%s)", annotatedEnumClass.getCanonicalName(), String.join(", ", names));
+			throw new IllegalStateException(error);
+		}
+	}
+
+	private class PersistedEnumConstant implements AbstractEnum {
 
 		private final String name;
+
+		private boolean isDefault;
 
 		private final String description;
 
 		private final boolean active;
 
-		public EnumConstant(String name, String description, boolean active) {
+		public PersistedEnumConstant(String name, boolean isDefault, String description, boolean active) {
 			this.name = name;
 			this.description = description;
+			this.isDefault = isDefault;
 			this.active = active;
 		}
 
-		public String getName() {
+		@Override
+		public String name() {
 			return name;
+		}
+
+		@Override
+		public boolean isDefault() {
+			return isDefault;
 		}
 
 		@Override
@@ -167,8 +197,13 @@ public class EnumService {
 		}
 
 		@Override
+		public boolean isActive() {
+			return active;
+		}
+
+		@Override
 		public String toString() {
-			return "EnumConstant [name=" + name + ", description=" + description + "]";
+			return "PersistedEnumConstant [name=" + name + ", isDefault=" + isDefault + ", description=" + description + ", active=" + active + "]";
 		}
 
 	}
