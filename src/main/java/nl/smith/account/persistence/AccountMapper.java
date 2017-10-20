@@ -7,13 +7,13 @@ import java.util.Map;
 import nl.smith.account.domain.Mutation;
 
 public interface AccountMapper {
-    void persist(Mutation mutation);
+	void persist(Mutation mutation);
 
-    List<Date> getTransactionDatesToBePostProcessed();
+	List<Date> getTransactionDatesToBePostProcessed();
 
-    List<Integer> getMutationIdsToBeprocessedForDate(Date date);
+	List<Integer> getMutationIdsToBeprocessedForDate(Date date);
 
-    void setOrdernumberForMutationWithId(Map<String, Integer> parameterMap);
+	void setOrdernumberForMutationWithId(Map<String, Integer> parameterMap);
 
-    void deleteAll();
+	void deleteAll();
 }

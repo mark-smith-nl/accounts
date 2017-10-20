@@ -1,7 +1,5 @@
 package nl.smith.account.configuration;
 
-import java.sql.SQLException;
-
 import org.apache.tomcat.jdbc.pool.DataSource;
 import org.mybatis.spring.annotation.MapperScan;
 import org.slf4j.Logger;
@@ -16,36 +14,36 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 @MapperScan(basePackages = "nl.smith.account.persistence")
 public class DbConfig {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DbConfig.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(DbConfig.class);
 
-    public static final String SQL_SESSION_FACTORY_NAME_BAMC = "sqlSessionFactoryBamc";
+	public static final String SQL_SESSION_FACTORY_NAME_BAMC = "sqlSessionFactoryBamc";
 
-    @Bean()
-    public DataSource dataSource(@Value("${spring.datasource.url}") String url, @Value("${spring.datasource.user}") String user,
-            @Value("${spring.datasource.password}") String password) {
-        DataSource dataSource = new DataSource();
-        dataSource.setDriverClassName("org.postgresql.Driver");
+	@Bean()
+	public DataSource dataSource(@Value("${spring.datasource.url}") String url, @Value("${spring.datasource.user}") String user,
+			@Value("${spring.datasource.password}") String password) {
+		DataSource dataSource = new DataSource();
+		dataSource.setDriverClassName("org.postgresql.Driver");
 
-        dataSource.setUrl(url);
-        dataSource.setUsername(user);
-        dataSource.setPassword(password);
+		dataSource.setUrl(url);
+		dataSource.setUsername(user);
+		dataSource.setPassword(password);
 
-        dataSource.setInitSQL("set search_path=account");
-        dataSource.setName("Accounts");
+		dataSource.setInitSQL("set search_path=account");
+		dataSource.setName("Accounts");
 
-        try {
-            dataSource.getConnection();
-        } catch (SQLException e) {
-            System.err.println("get connection throws Exception");
-            e.printStackTrace();
-        }
+		try {
+			dataSource.getConnection();
+		} catch (Exception e) {
+			LOGGER.error("Could not connect to database");
+			System.exit(1);
+		}
 
-        return dataSource;
-    }
+		return dataSource;
+	}
 
-    @Primary
-    @Bean(name = "transactionManagerBamc")
-    public DataSourceTransactionManager transactionManager(DataSource dataSource) {
-        return new DataSourceTransactionManager(dataSource);
-    }
+	@Primary
+	@Bean(name = "transactionManagerBamc")
+	public DataSourceTransactionManager transactionManager(DataSource dataSource) {
+		return new DataSourceTransactionManager(dataSource);
+	}
 }
