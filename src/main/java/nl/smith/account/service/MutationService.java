@@ -6,7 +6,9 @@ import java.util.List;
 import java.util.Map;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
+import org.hibernate.validator.constraints.NotEmpty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,15 +37,17 @@ public class MutationService {
 		accountMapper.deleteAll();
 	}
 
-	public void persist(@Valid List<Mutation> mutations) {
+	public void persist(@NotEmpty @Valid List<Mutation> mutations) {
 		for (Mutation mutation : mutations) {
-			this.persist(mutation);
+			System.out.println("bbbbb");
+			System.out.println(mutation.getEmailAddress());
+			persist(mutation);
 		}
 
 		postProcess();
 	}
 
-	public void persist(@Valid Mutation mutation) {
+	public void persist(@NotNull @Valid Mutation mutation) {
 		accountMapper.persist(mutation);
 
 		// System.out.println(validator);

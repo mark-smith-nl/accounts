@@ -8,12 +8,11 @@ import java.util.Date;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
-import org.springframework.validation.annotation.Validated;
+import org.hibernate.validator.constraints.Email;
 
 import nl.smith.account.enums.Currency;
 import nl.smith.account.enums.EnumHelper;
 
-@Validated
 public class Mutation {
 	private Integer id;
 
@@ -49,7 +48,7 @@ public class Mutation {
 		return accountNumber;
 	}
 
-	public void setAccountNumber(String accountNumber) {
+	public void setAccountNumber(@Pattern(message = "{nl.smith.accountNumber.message}", regexp = "\\d{9}") String accountNumber) {
 		this.accountNumber = accountNumber;
 	}
 
@@ -115,6 +114,11 @@ public class Mutation {
 
 	public Integer getOrdernumber() {
 		return ordernumber;
+	}
+
+	@Email
+	public String getEmailAddress() {
+		return "aaaaaaa";
 	}
 
 	@Override
