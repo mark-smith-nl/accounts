@@ -71,23 +71,30 @@ public class AnimalShelterController {
 		html.add("<title>Edit</title>");
 		html.add("</head>");
 		html.add("<body>");
-		html.add("<form action=\"/" + CONTROLLER_MAPPING + SAVE_MAPPING + "\" method=\"" + method + "\">");
-		html.add("<input type=\"text\" name=\"name\" value=\"" + animalShelter.getName() + "\"><br>");
-		html.add("<br>");
+
+		List<String> htmlContent = new ArrayList<>();
+		htmlContent.add("<form action=\"/" + CONTROLLER_MAPPING + SAVE_MAPPING + "\" method=\"" + method + "\">");
+		htmlContent.add("<input type=\"text\" name=\"name\" value=\"" + animalShelter.getName() + "\"><br>");
+		htmlContent.add("<br>");
 
 		for (int i = 0; i < animals.size(); i++) {
 			Animal animal = animals.get(i);
-			html.add("<input type=\"text\" name=\"animals[" + i + "].className\" value=\"" + animal.getClass().getCanonicalName() + "\"><br>");
+			htmlContent.add("<input type=\"text\" name=\"animals[" + i + "].className\" value=\"" + animal.getClass().getCanonicalName() + "\"><br>");
 
-			html.add("<input type=\"text\" name=\"animals[" + i + "].name\" value=\"" + animal.getName() + "\"><br>");
+			htmlContent.add("<input type=\"text\" name=\"animals[" + i + "].name\" value=\"" + animal.getName() + "\"><br>");
 			if (animal instanceof Dog) {
 				Dog dog = (Dog) animal;
-				html.add("<input type=\"text\" name=\"animals[" + i + "].barks\" value=\"" + dog.isBarks() + "\"><br>");
+				htmlContent.add("<input type=\"text\" name=\"animals[" + i + "].barks\" value=\"" + dog.isBarks() + "\"><br>");
 			}
 
 		}
-		html.add("<input type=\"submit\" value=\"Opslaan\">\n");
-		html.add("</form>");
+		htmlContent.add("<br><input type=\"submit\" value=\"Opslaan\">\n");
+		htmlContent.add("</form>");
+
+		html.addAll(htmlContent);
+		html.add("<br>Code:<br><textarea cols=\"150\" rows=\"" + (htmlContent.size() + 1) + "\">");
+		html.addAll(htmlContent);
+		html.add("</textarea>");
 		html.add("</body>");
 		html.add("</html>");
 
