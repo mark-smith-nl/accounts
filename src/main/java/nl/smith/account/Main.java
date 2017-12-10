@@ -7,6 +7,7 @@ import org.springframework.boot.Banner;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.security.core.userdetails.UserDetailsService;
 
 import nl.smith.account.service.ImportService;
 
@@ -18,6 +19,9 @@ public abstract class Main implements CommandLineRunner {
 	@Autowired
 	private ImportService importService;
 
+	@Autowired
+	private UserDetailsService userDetailsService;
+
 	public static void main(String[] args) throws Exception {
 		SpringApplication springApplication = new SpringApplication(Main.class);
 		springApplication.setBannerMode(Banner.Mode.OFF);
@@ -26,6 +30,7 @@ public abstract class Main implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
+
 		// importService.importFromFile("/home/mark/Downloads/TXT170929134202.TAB");
 	}
 

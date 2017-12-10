@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 
 @Configuration
-@MapperScan(basePackages = "nl.smith.account.persistence")
+@MapperScan(basePackages = { "nl.smith.account.persistence", "nl.smith.account.development.persistence" })
 public class DbConfig {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DbConfig.class);

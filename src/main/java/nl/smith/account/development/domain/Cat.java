@@ -1,4 +1,4 @@
-package nl.smith.account.development.controller;
+package nl.smith.account.development.domain;
 
 public class Cat extends Animal {
 

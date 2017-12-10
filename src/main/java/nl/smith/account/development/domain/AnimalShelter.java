@@ -1,4 +1,4 @@
-package nl.smith.account.development.controller;
+package nl.smith.account.development.domain;
 
 import java.util.ArrayList;
 import java.util.List;
