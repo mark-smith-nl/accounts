@@ -12,7 +12,9 @@ import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.InitBinder;
@@ -39,6 +41,8 @@ public class AnimalShelterController {
 
 	public static final String GET_ANIMALS_MAPPING = "/getAnimals";
 
+	public static final String TEST_MAPPING = "/test";
+
 	@InitBinder("animalShelter")
 	public void initBinder(WebDataBinder webDataBinder, HttpServletRequest httpServletRequest) throws ClassNotFoundException, NoSuchMethodException, SecurityException,
 			InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
@@ -63,6 +67,17 @@ public class AnimalShelterController {
 				}
 			}
 		}
+	}
+
+	@GetMapping(TEST_MAPPING)
+	public String test(ModelMap model, Authentication authentication) {
+
+		System.out.println(authentication.getPrincipal().getClass());
+
+		System.out.println(authentication.getAuthorities().getClass());
+		authentication.getAuthorities().forEach(grantedAuthority -> System.out.println(grantedAuthority.getAuthority()));
+		model.addAttribute("authenticatedPrincipal", authentication.getPrincipal());
+		return "index";
 	}
 
 	@GetMapping(EDIT_MAPPING)

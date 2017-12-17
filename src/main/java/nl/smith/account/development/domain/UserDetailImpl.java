@@ -1,18 +1,16 @@
 package nl.smith.account.development.domain;
 
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.List;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 public class UserDetailImpl implements UserDetails {
 
-	private static final Pattern PASSWORD_REGEX = Pattern.compile("(\\$(\\d)a?\\$(\\d\\d))\\$(\\S+)");
+	// private static final Pattern PASSWORD_REGEX =
+	// Pattern.compile("(\\$(\\d)a?\\$(\\d\\d))\\$(\\S+)");
 
 	private final String username;
 
@@ -26,17 +24,18 @@ public class UserDetailImpl implements UserDetails {
 
 	private final boolean enabled;
 
-	private final Collection<? extends GrantedAuthority> authorities;
+	private final List<? extends GrantedAuthority> authorities;
 
 	private final String email;
 
 	public UserDetailImpl(User user) {
 		username = user.getUsername();
 
-		String password = user.getPassword();
-		if (password == null || !password.matches(PASSWORD_REGEX.pattern())) {
-			throw new IllegalStateException("Illegal password");
-		}
+		/*
+		 * String password = user.getPassword(); if (password == null ||
+		 * !password.matches(PASSWORD_REGEX.pattern())) { throw new
+		 * IllegalStateException("Illegal password"); }
+		 */
 		this.password = user.getPassword();
 
 		accountNonExpired = user.isAccountNonExpired();
@@ -44,7 +43,7 @@ public class UserDetailImpl implements UserDetails {
 		credentialsNonExpired = user.isAccountNonExpired();
 		enabled = user.isEnabled();
 
-		Set<GrantedAuthority> authorities = new HashSet<>();
+		List<GrantedAuthority> authorities = new ArrayList<>();
 		user.getRoles().forEach(role -> {
 			authorities.add(new GrantedAuthority() {
 
@@ -56,7 +55,7 @@ public class UserDetailImpl implements UserDetails {
 
 		});
 
-		this.authorities = Collections.unmodifiableSet(authorities);
+		this.authorities = Collections.unmodifiableList(authorities);
 
 		email = user.getEmail();
 	}
@@ -75,22 +74,27 @@ public class UserDetailImpl implements UserDetails {
 	}
 
 	public String getEncryptionTypeAndSalt() {
-		Matcher matcher = PASSWORD_REGEX.matcher(password);
-		matcher.matches();
-		return matcher.group(1);
+		/*
+		 * Matcher matcher = PASSWORD_REGEX.matcher(password);
+		 * matcher.matches(); return matcher.group(1);
+		 */
+		return null;
 	}
 
 	public int getEncryptionType() {
-		Matcher matcher = PASSWORD_REGEX.matcher(password);
-		matcher.matches();
-		return Integer.valueOf(matcher.group(2));
+		/*
+		 * Matcher matcher = PASSWORD_REGEX.matcher(password);
+		 * matcher.matches(); return Integer.valueOf(matcher.group(2));
+		 */
+		return 0;
 	}
 
 	public String getSalt() {
-		Matcher matcher = PASSWORD_REGEX.matcher(password);
-		matcher.matches();
+		/*
+		 * Matcher matcher = PASSWORD_REGEX.matcher(password);
+		 * matcher.matches(); return null; // return matcher.group(3);
+		 */
 		return null;
-		// return matcher.group(3);
 	}
 
 	@Override
@@ -114,7 +118,7 @@ public class UserDetailImpl implements UserDetails {
 	}
 
 	@Override
-	public Collection<? extends GrantedAuthority> getAuthorities() {
+	public List<? extends GrantedAuthority> getAuthorities() {
 		return authorities;
 	}
 

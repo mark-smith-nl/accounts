@@ -1,40 +1,52 @@
 package nl.smith.account.development;
 
-import java.io.IOException;
-
-import org.springframework.security.authentication.encoding.MessageDigestPasswordEncoder;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 public abstract class TestPwd {
 
-	public static void main(String[] args) throws IOException {
-		int i = 0;
-		while (i < 10) {
-			String password = "25Colisa labiosa";
-			BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-			String hashedPassword = passwordEncoder.encode(password);
+	public static void main(String[] args) {
 
-			System.out.println(hashedPassword);
-			i++;
+		String password = "Geheim";
+		String salt = "$QW4Py/hP";
+		String r = md5(password + salt);
+
+		System.out.println("MD5 in hex: " + r);
+		for (int i = 0; i < r.length(); i = i + 2) {
+			System.out.print(Integer.valueOf(r.substring(i, i + 2), 16).intValue() + " ");
+		}
+		System.out.println();
+		for (int i = 0; i < r.length(); i = i + 2) {
+
+			System.out.print((char) Integer.valueOf(r.substring(i, i + 2), 16).intValue() + " ");
+		}
+		System.out.println();
+		salt = "$1$QW4Py/hP";
+		r = md5(password + salt);
+
+		System.out.println("MD5 in hex: " + r);
+		for (int i = 0; i < r.length(); i = i + 2) {
+			System.out.print(Integer.valueOf(r.substring(i, i + 2), 16).intValue() + " ");
+		}
+		System.out.println();
+		for (int i = 0; i < r.length(); i = i + 2) {
+			System.out.print((char) Integer.valueOf(r.substring(i, i + 2), 16).intValue() + " ");
+		}
+	}
+
+	public static String md5(String input) {
+		String md5 = null;
+
+		try {
+			MessageDigest digest = MessageDigest.getInstance("MD5");
+			System.out.println(digest.getAlgorithm());
+			digest.update(input.getBytes(), 0, input.length());
+			md5 = new BigInteger(1, digest.digest()).toString(16);
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
 		}
 
+		return md5;
 	}
-
-	public static void main2(String[] args) {
-		String rawPasword = "Nowayin1";
-
-		String salt = "";
-		// byte[] salt = salt1.getBytes(Charset.forName("UTF-8"));
-
-		MessageDigestPasswordEncoder encoder = new MessageDigestPasswordEncoder("MD5");
-		String encodePassword = encoder.encodePassword(rawPasword, salt);
-
-		System.out.println(encodePassword);
-		// System.out.println(getAsString(encodePasswordal));
-	}
-
-	private static String getAsString(String v) {
-		return v.length() == 0 ? "" : Character.valueOf((char) Integer.valueOf(v.substring(0, 2), 16).intValue()) + getAsString(v.substring(2));
-	}
-
 }

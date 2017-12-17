@@ -55,4 +55,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		return authProvider;
 	}
 
+	@Override
+	public UserDetailsService userDetailsServiceBean() throws Exception {
+		// TODO Auto-generated method stub
+		return userDetailsService;
+	}
+
 }
