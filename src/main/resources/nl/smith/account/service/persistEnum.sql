@@ -1,6 +1,7 @@
-INSERT INTO account.${enumClassname}(name, isdefault, description)
+INSERT INTO account.${enumClassname}(name, description, isDefaultValue, isActiveValue)
 VALUES (
 	'${name}'
-	, ${isdefault}
 	, '${description}'
+	, ${isDefaultValue}
+	, ${isActiveValue}
 )

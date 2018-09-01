@@ -1,29 +1,29 @@
 package nl.smith.account.enums;
 
-import nl.smith.account.annotation.PersistedEnum;
+import nl.smith.account.annotation.PersistedInTable;
 
-@PersistedEnum
+@PersistedInTable
 public enum MutationType implements AbstractEnum {
 
 	DEBET("DEBET: Withdraw from account"),
 	CREDIT("CREDIT: Add to account");
 
-	private boolean isDefault;
-
 	private String description;
+
+	private boolean defaultValue;
 
 	MutationType(String description) {
 		this(description, false);
 	}
 
-	MutationType(String description, boolean isDefault) {
+	MutationType(String description, boolean defaultValue) {
 		this.description = description;
-		this.isDefault = isDefault;
+		this.defaultValue = defaultValue;
 	}
 
 	@Override
-	public boolean isDefault() {
-		return isDefault;
+	public boolean isDefaultValue() {
+		return defaultValue;
 	}
 
 	@Override

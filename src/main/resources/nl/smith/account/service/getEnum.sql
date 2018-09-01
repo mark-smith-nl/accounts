@@ -1,8 +1,8 @@
 SELECT
 	name
-	, isdefault
 	, description
-	, active
+	, isDefaultValue
+	, isActiveValue
 FROM account.${enumClassname}
 WHERE
 	name = '${name}'

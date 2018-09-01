@@ -7,6 +7,6 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface PersistedEnum {
-
+public @interface PersistedInTable {
+	String value() default "";
 }

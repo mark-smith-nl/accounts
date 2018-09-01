@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="nl.smith.account.persistence.AccountMapper">
-
+<mapper namespace="nl.smith.account.persistence.MutationMapper">
+	<resultMap id="mutation" type="nl.smith.account.domain.Mutation"
+		autoMapping="true" />
+		
 	<insert id="persist" parameterType="nl.smith.account.domain.Mutation">
 		<selectKey keyProperty="id" resultType="int" order="BEFORE">SELECT
 			nextval('account.mutation_id_seq')
 		</selectKey>
-		INSERT INTO account.mutation(
+		INSERT INTO mutation(
 		id
 		, accountnumber
 		, currency
@@ -33,25 +35,29 @@
 
 	<select id="getTransactionDatesToBePostProcessed" resultType="date">
 		SELECT DISTINCT transactiondate
-		FROM account.mutation
+		FROM mutation
 		WHERE
-		ordernumber =
-		-1
+		ordernumber IS NULL
 	</select>
 
 	<select id="getMutationIdsToBeprocessedForDate" parameterType="date"
 		resultType="integer">
 		SELECT id
-		FROM account.mutation
+		FROM mutation
 		WHERE
-		transactiondate =
-		#{value}
+		transactiondate = #{value} AND ordernumber IS NULL
 		ORDER BY
 		id
 	</select>
 
+	<select id="getMutations" resultMap="mutation">
+		SELECT *
+		FROM mutation
+		ORDER BY transactiondate, ordernumber
+	</select>
+
 	<update id="setOrdernumberForMutationWithId" parameterType="map">
-		UPDATE account.mutation
+		UPDATE mutation
 		SET
 		ordernumber = #{ordernumber}
 		WHERE
@@ -59,7 +65,7 @@
 	</update>
 
 	<delete id="deleteAll">
-		DELETE FROM account.mutation
+		DELETE FROM mutation
 	</delete>
 
 </mapper>

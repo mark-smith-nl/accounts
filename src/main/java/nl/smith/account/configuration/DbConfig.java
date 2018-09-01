@@ -7,43 +7,38 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 
 @Configuration
 @MapperScan(basePackages = { "nl.smith.account.persistence", "nl.smith.account.development.persistence" })
 public class DbConfig {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(DbConfig.class);
-
-	public static final String SQL_SESSION_FACTORY_NAME_BAMC = "sqlSessionFactoryBamc";
+	private final static Logger LOGGER = LoggerFactory.getLogger(DbConfig.class);
 
 	@Bean()
 	public DataSource dataSource(@Value("${spring.datasource.url}") String url, @Value("${spring.datasource.user}") String user,
-			@Value("${spring.datasource.password}") String password) {
+			@Value("${spring.datasource.password}") String password, @Value("${spring.datasource.driver-class-name}") String driverClassName) {
 		DataSource dataSource = new DataSource();
-		dataSource.setDriverClassName("org.postgresql.Driver");
+		dataSource.setDriverClassName(driverClassName);
 
 		dataSource.setUrl(url);
 		dataSource.setUsername(user);
 		dataSource.setPassword(password);
 
-		dataSource.setInitSQL("set search_path=account");
-		dataSource.setName("Accounts");
-
 		try {
 			dataSource.getConnection();
 		} catch (Exception e) {
-			LOGGER.error("Could not connect to database");
-			System.exit(1);
+			throw new IllegalStateException(String.format("Could not connect to database [%s].\nIs the dbserver active?", url));
 		}
+
+		LOGGER.info("Connected to database {}", url);
 
 		return dataSource;
 	}
 
-	@Primary
-	@Bean(name = "transactionManagerBamc")
+	@Bean()
 	public DataSourceTransactionManager transactionManager(DataSource dataSource) {
 		return new DataSourceTransactionManager(dataSource);
 	}
+
 }

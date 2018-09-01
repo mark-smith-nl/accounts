@@ -19,10 +19,8 @@ public class BalanceDataConstraintChecker implements ConstraintValidator<ValidBa
 	@Override
 	public boolean isValid(Mutation mutation, ConstraintValidatorContext context) {
 		boolean valid = true;
-		System.out.println("Yesssss");
-		if (mutation == null) {
-			valid = false;
-		} else {
+
+		if (mutation != null) {
 			if (mutation.getAmount().abs().intValue() < 3) {
 				valid = false;
 			}

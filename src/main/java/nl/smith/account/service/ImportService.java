@@ -3,7 +3,6 @@ package nl.smith.account.service;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -16,7 +15,6 @@ import javax.validation.Validator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import nl.smith.account.domain.Mutation;
@@ -30,38 +28,46 @@ public class ImportService {
 
 	private final Validator validator;
 
-	@Autowired
+	private final List<Column> columns;
+
+	private final Pattern pattern;
+
 	public ImportService(MutationService mutationService, Validator validator) {
 		this.mutationService = mutationService;
 		this.validator = validator;
+
+		columns = buildColumns();
+		pattern = Pattern.compile(Column.getRegex(columns));
 	}
 
-	public void importFromFile(String filePath) throws IOException {
+	public void cleanDatabase() {
 		mutationService.removeTransactions();
+	}
 
-		List<Column> columns = buildColumns();
+	public int importFromFile(Path input) throws IOException {
+		LOGGER.info("Reading file {}", input.toString());
 
-		Pattern pattern = Pattern.compile(Column.getRegex(columns));
-		Path path = Paths.get(filePath);
-		List<String> records = Files.readAllLines(path);
+		List<String> records = Files.readAllLines(input);
 		List<Mutation> mutations = new ArrayList<>();
 		if (!records.isEmpty()) {
 			LOGGER.info("Read {} mutation lines.", records.size());
 			try {
-				records.forEach(record -> mutations.add(getMutationFromString(pattern, columns, record)));
+				records.forEach(record -> mutations.add(getMutationFromString(record)));
 			} catch (IllegalArgumentException e) {
 				LOGGER.warn(e.getMessage());
 				LOGGER.warn("Valid records: {}", mutations.size());
-				return;
+				return 0;
 			}
 		}
 
 		LOGGER.info("All {} mutations are valid", mutations.size());
 
 		mutationService.persist(mutations);
+
+		return mutations.size();
 	}
 
-	private Mutation getMutationFromString(Pattern pattern, List<Column> columns, String record) {
+	private Mutation getMutationFromString(String record) {
 		Matcher matcher = pattern.matcher(record);
 		if (matcher.matches()) {
 			// @formatter:off
@@ -78,12 +84,12 @@ public class ImportService {
 
             validateMutation(mutation);
             
-         //   mutation.setCurrency(null);
             return mutation;
-             // @formatter:on
-		} else {
-			throw new IllegalArgumentException(String.format("\nCould not parse line: %s\nIt does not comply to the regular expression '%s'.'", record, pattern.pattern()));
+
 		}
+
+		throw new IllegalArgumentException(String.format("\nCould not parse line: %s\nIt does not comply to the regular expression '%s'.'", record, pattern.pattern()));
+
 	}
 
 	private void validateMutation(Mutation mutation) {
@@ -92,7 +98,7 @@ public class ImportService {
 			StringBuilder error = new StringBuilder("Invalid mutation");
 			error.append("\n" + mutation);
 			violations.forEach(violation -> {
-				error.append("\n" + violation.getMessage());
+				error.append("\n" + violation.getInvalidValue() + "\t" + violation.getMessage());
 			});
 
 			throw new IllegalArgumentException(error.toString());

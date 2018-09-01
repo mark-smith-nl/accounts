@@ -1,7 +1,7 @@
 UPDATE account.${enumClassname}
 SET
- isdefault = ${isdefault}
-, description = '${description}'
-, active = true
+	description = '${description}'
+	, isDefaultValue = ${isDefaultValue}
+	, isActiveValue = ${isActiveValue}
 WHERE
-name = '${name}'
+	name = '${name}'

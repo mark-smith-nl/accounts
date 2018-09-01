@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import nl.smith.account.domain.Mutation;
-import nl.smith.account.persistence.AccountMapper;
+import nl.smith.account.persistence.MutationMapper;
 
 @Validated
 @Service
@@ -26,10 +26,10 @@ public class MutationService {
 
 	private final static Logger LOGGER = LoggerFactory.getLogger(MutationService.class);
 
-	private final AccountMapper accountMapper;
+	private final MutationMapper accountMapper;
 
 	@Autowired
-	public MutationService(AccountMapper accountMapper) {
+	public MutationService(MutationMapper accountMapper) {
 		this.accountMapper = accountMapper;
 	}
 
@@ -38,19 +38,13 @@ public class MutationService {
 	}
 
 	public void persist(@NotEmpty @Valid List<Mutation> mutations) {
-		for (Mutation mutation : mutations) {
-			System.out.println("bbbbb");
-			System.out.println(mutation.getEmailAddress());
-			persist(mutation);
-		}
+		mutations.forEach(this::persist);
 
 		postProcess();
 	}
 
 	public void persist(@NotNull @Valid Mutation mutation) {
 		accountMapper.persist(mutation);
-
-		// System.out.println(validator);
 	}
 
 	private void postProcess() {
@@ -69,6 +63,10 @@ public class MutationService {
 			}
 		});
 
+	}
+
+	public List<Mutation> getMutations() {
+		return accountMapper.getMutations();
 	}
 
 }

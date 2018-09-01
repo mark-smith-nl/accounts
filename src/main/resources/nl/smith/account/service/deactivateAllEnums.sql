@@ -1,5 +1,5 @@
 UPDATE account.${enumClassname}
 SET
-active = false
+isActiveValue = false
 
 
