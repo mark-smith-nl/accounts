@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="nl.smith.account.persistence.PersistedEnumMapper">
+	<resultMap id="persistedEnum" type="nl.smith.account.domain.PersistedEnum" autoMapping="true">
+		<result property="defaultValue" column="default_value"/>
+		<result property="activeValue" column="active_value"/>
+	</resultMap>
+
+	<update id="disableAllPersistedEnums">
+		UPDATE ${tableName} SET default_value = false
+		, active_value = false;
+	</update>
+
+	<select id="getPersistedEnumNames" resultType="string">
+		SELECT name
+		FROM ${tableName}
+	</select>
+	
+	<select id="getPersistedEnums" resultMap="persistedEnum">
+		SELECT '${fullyQualifiedClassName}' as fullyQualifiedClassName, *
+		FROM ${tableName}
+	</select>
+	
+	<select id="getPersistedEnumByName" resultMap="persistedEnum">
+		SELECT '${fullyQualifiedClassName}' as fullyQualifiedClassName, *
+		FROM ${tableName}
+		WHERE name = '${name}';
+	</select>
+
+	<insert id="insertEnum">
+		INSERT INTO ${tableName}(name
+		, description
+		, default_value
+		, active_value)
+		VALUES('${name}'
+		, '${description}'
+		, ${defaultValue}
+		, ${activeValue});
+	</insert>
+
+	<insert id="updateEnum">
+		UPDATE ${tableName} SET description = '${description}'
+		, default_value = ${defaultValue}
+		, active_value = ${activeValue}
+		WHERE name = '${name}';
+	</insert>
+</mapper>
