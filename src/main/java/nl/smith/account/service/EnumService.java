@@ -14,8 +14,8 @@ import javax.annotation.PostConstruct;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.flyway.FlywayMigrationInitializer;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +24,7 @@ import nl.smith.account.domain.PersistedEnum;
 import nl.smith.account.enums.AbstractEnum;
 import nl.smith.account.persistence.PersistedEnumMapper;
 
+@DependsOn("flywayInitializer")
 @Service
 public class EnumService {
 
@@ -31,7 +32,7 @@ public class EnumService {
 
 	private final PersistedEnumMapper persistedEnumMapper;
 
-	public EnumService(FlywayMigrationInitializer flywayMigrationInitializer, PersistedEnumMapper persistedEnumMapper) {
+	public EnumService(PersistedEnumMapper persistedEnumMapper) {
 		this.persistedEnumMapper = persistedEnumMapper;
 	}
 
@@ -41,7 +42,7 @@ public class EnumService {
 		getPersistedEnumClasses().forEach(enumClass -> synchronizePersistedEnum(enumClass));
 	}
 
-	public <T extends Class<? extends AbstractEnum>> Set<PersistedEnum> getPersistedEnums(T enumClass) {
+	public <T extends AbstractEnum> Set<PersistedEnum> getPersistedEnums(Class<T> enumClass) {
 		return persistedEnumMapper.getPersistedEnums(getTableName(enumClass));
 	}
 
@@ -102,10 +103,9 @@ public class EnumService {
 				}
 			}
 		});
-
 	}
 
-	private static <T extends Class<? extends AbstractEnum>> String getTableName(T enumClass) {
+	private static <T extends AbstractEnum> String getTableName(Class<T> enumClass) {
 		PersistedInTable annotation = enumClass.getAnnotation(PersistedInTable.class);
 
 		if (annotation == null) {

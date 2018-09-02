@@ -16,7 +16,7 @@ public class DbConfig {
 	private final static Logger LOGGER = LoggerFactory.getLogger(DbConfig.class);
 
 	@Bean()
-	public DataSource dataSource(@Value("${spring.datasource.url}") String url, @Value("${spring.datasource.user}") String user,
+	public static DataSource dataSource(@Value("${spring.datasource.url}") String url, @Value("${spring.datasource.user}") String user,
 			@Value("${spring.datasource.password}") String password, @Value("${spring.datasource.driver-class-name}") String driverClassName) {
 		DataSource dataSource = new DataSource();
 		dataSource.setDriverClassName(driverClassName);
@@ -37,7 +37,7 @@ public class DbConfig {
 	}
 
 	@Bean()
-	public DataSourceTransactionManager transactionManager(DataSource dataSource) {
+	public static DataSourceTransactionManager transactionManager(DataSource dataSource) {
 		return new DataSourceTransactionManager(dataSource);
 	}
 
