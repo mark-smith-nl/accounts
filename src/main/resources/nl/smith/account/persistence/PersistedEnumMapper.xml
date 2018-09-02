@@ -6,25 +6,16 @@
 		<result property="activeValue" column="active_value"/>
 	</resultMap>
 
-	<update id="disableAllPersistedEnums">
+	<update id="disablePersistedEnum">
 		UPDATE ${tableName} SET default_value = false
-		, active_value = false;
+		, active_value = false
+		, modified = now()
+		WHERE name = '${name}';
 	</update>
-
-	<select id="getPersistedEnumNames" resultType="string">
-		SELECT name
-		FROM ${tableName}
-	</select>
 	
 	<select id="getPersistedEnums" resultMap="persistedEnum">
-		SELECT '${fullyQualifiedClassName}' as fullyQualifiedClassName, *
+		SELECT *
 		FROM ${tableName}
-	</select>
-	
-	<select id="getPersistedEnumByName" resultMap="persistedEnum">
-		SELECT '${fullyQualifiedClassName}' as fullyQualifiedClassName, *
-		FROM ${tableName}
-		WHERE name = '${name}';
 	</select>
 
 	<insert id="insertEnum">
@@ -35,13 +26,14 @@
 		VALUES('${name}'
 		, '${description}'
 		, ${defaultValue}
-		, ${activeValue});
+		, true);
 	</insert>
 
 	<insert id="updateEnum">
 		UPDATE ${tableName} SET description = '${description}'
 		, default_value = ${defaultValue}
-		, active_value = ${activeValue}
+		, active_value = true
+		, modified = now()
 		WHERE name = '${name}';
 	</insert>
 </mapper>

@@ -54,7 +54,7 @@ public class EnumServiceTest {
 				assertNotNull(persistedEnum);
 				assertThat(persistedEnum.get("description"), is(abstractEnum.getDescription()));
 				assertThat(persistedEnum.get("isDefaultValue"), is(abstractEnum.isDefaultValue()));
-				assertThat(persistedEnum.get("isActiveValue"), is(abstractEnum.isActiveValue()));
+				assertThat(persistedEnum.get("isActiveValue"), is(true));
 			});
 		});
 	}

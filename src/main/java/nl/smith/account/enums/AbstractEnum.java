@@ -12,12 +12,8 @@ public interface AbstractEnum {
 
 	boolean isDefaultValue();
 
-	default boolean isActiveValue() {
-		return true;
-	}
-
 	default public String asString() {
-		return String.format("%s.%s[%s, %b, %b]", getClass().getSimpleName(), name(), getDescription(), isDefaultValue(), isActiveValue());
+		return String.format("%s.%s[%s, %b]", getClass().getSimpleName(), name(), getDescription(), isDefaultValue());
 	}
 
 	public static <T extends AbstractEnum> T getEnumByName(Class<T> clazz, String name) {

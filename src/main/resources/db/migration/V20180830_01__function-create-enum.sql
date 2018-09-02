@@ -20,6 +20,7 @@ BEGIN
 	DROP FUNCTION IF EXISTS deactivate_enumvalues(varchar);
 	DROP FUNCTION IF EXISTS insert_enumvalue(varchar, varchar, varchar, boolean, boolean);
 	DROP FUNCTION IF EXISTS dropAll();
+	RAISE NOTICE 'All tables and functions are deleted. You can not run this function again.';
 END
 $$ LANGUAGE plpgsql;
 
@@ -33,7 +34,8 @@ EXECUTE format('
         , description   varchar(126) NOT NULL
         , default_value boolean   NOT NULL DEFAULT false
         , active_value  boolean    NOT NULL DEFAULT true
-		, created_at    TIMESTAMP        NOT NULL DEFAULT now());
+		, created       TIMESTAMP        NOT NULL DEFAULT now()
+        , modified      TIMESTAMP        NOT NULL DEFAULT now());
      COMMENT ON TABLE %1$s IS %2$L;
 ',  table_name, table_description);
 END
@@ -43,7 +45,7 @@ CREATE OR REPLACE FUNCTION deactivate_enumvalues(table_name varchar(30))
 RETURNS VOID AS
 $$
 BEGIN
-EXECUTE format('UPDATE %s SET default_value = false, active_value = false', table_name);
+EXECUTE format('UPDATE %s SET default_value = false, active_value = false, modified = now()', table_name);
 END
 $$ LANGUAGE plpgsql;
 
@@ -51,6 +53,6 @@ CREATE OR REPLACE FUNCTION insert_enumvalue(table_name varchar(30), name varchar
 RETURNS VOID AS
 $$
 BEGIN
-EXECUTE format('INSERT INTO %s(name, description, default_value, active_value) VALUES(%L, %L, %L, %L)', table_name, name, description, default_value, active_value);
+EXECUTE format('INSERT INTO %s(name, description, default_value, active_value, modified = now()) VALUES(%L, %L, %L, %L)', table_name, name, description, default_value, active_value);
 END
 $$ LANGUAGE plpgsql;

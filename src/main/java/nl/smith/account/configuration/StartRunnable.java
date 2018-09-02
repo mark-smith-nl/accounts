@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import nl.smith.account.domain.Mutation;
@@ -13,7 +12,7 @@ import nl.smith.account.enums.Currency;
 import nl.smith.account.service.MutationService;
 
 @Component
-public class StartRunnable implements CommandLineRunner {
+public class StartRunnable {
 
 	private final MutationService mutationService;
 
@@ -21,8 +20,7 @@ public class StartRunnable implements CommandLineRunner {
 		this.mutationService = mutationService;
 	}
 
-	@Override
-	public void run(String... args) throws Exception {
+	public void insert() throws Exception {
 		List<Mutation> mutations = new ArrayList<>();
 
 		// @formatter:off
@@ -56,7 +54,7 @@ public class StartRunnable implements CommandLineRunner {
 				.setDescription("Idi").get());
 		// @formatter:on
 
-		// mutationService.persist(mutations);
+		mutationService.persist(mutations);
 	}
 
 }

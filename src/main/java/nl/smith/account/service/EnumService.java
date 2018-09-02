@@ -2,11 +2,19 @@ package nl.smith.account.service;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import javax.annotation.PostConstruct;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.flyway.FlywayMigrationInitializer;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.stereotype.Service;
@@ -23,18 +31,18 @@ public class EnumService {
 
 	private final PersistedEnumMapper persistedEnumMapper;
 
-	public EnumService(PersistedEnumMapper persistedEnumMapper) {
+	public EnumService(FlywayMigrationInitializer flywayMigrationInitializer, PersistedEnumMapper persistedEnumMapper) {
 		this.persistedEnumMapper = persistedEnumMapper;
 	}
 
-	// @DependsOn({ "flywayInitializerrrrrr", "flyway" })
-	// @PostConstruct
+	@PostConstruct
 	public void synchronizePersistedEnums() {
+		System.out.println("synchronizePersistedEnums");
 		getPersistedEnumClasses().forEach(enumClass -> synchronizePersistedEnum(enumClass));
 	}
 
-	public <T extends Class<? extends AbstractEnum>> List<PersistedEnum> getPersistedEnums(T enumClass) {
-		return persistedEnumMapper.getPersistedEnums(enumClass.getCanonicalName(), getTableName(enumClass));
+	public <T extends Class<? extends AbstractEnum>> Set<PersistedEnum> getPersistedEnums(T enumClass) {
+		return persistedEnumMapper.getPersistedEnums(getTableName(enumClass));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -60,29 +68,38 @@ public class EnumService {
 		validateEnumConstants(enumClass);
 
 		String tableName = getTableName(enumClass);
-
-		persistedEnumMapper.disableAllPersistedEnums(tableName);
-
-		final List<String> persistedEnumNames = persistedEnumMapper.getPersistedEnumNames(tableName);
-
-		LOGGER.info("Deactivated all entries in table {} for enum {}.", tableName, enumClass.getCanonicalName());
-		LOGGER.info("Deactivated entries in table {} :{}", tableName, String.join(", ", persistedEnumNames));
-
-		AbstractEnum[] enumConstants = enumClass.getEnumConstants();
-
 		String fullyQualifiedClassName = enumClass.getCanonicalName();
-		Arrays.asList(enumConstants).forEach(c -> {
-			if (persistedEnumNames.contains(c.name())) {
-				PersistedEnum persistedEnum = persistedEnumMapper.getPersistedEnumByName(fullyQualifiedClassName, tableName, c.name());
-				if (persistedEnum.synchronizePersistedEnum(c)) {
-					persistedEnumMapper.updateEnum(tableName, c.name(), c.getDescription(), c.isDefaultValue(), c.isActiveValue());
-					LOGGER.info("Updated entry {} in table {} : ", c.name(), tableName);
-				} else {
-					LOGGER.info("No need to Update entry {} in table {} : ", c.name(), tableName);
-				}
+
+		Map<String, PersistedEnum> persistedValueMap = persistedEnumMapper.getPersistedEnums(tableName).stream()
+				.collect(Collectors.toMap(PersistedEnum::name, Function.identity()));
+		Map<String, AbstractEnum> enumValueMap = Stream.of(enumClass.getEnumConstants()).collect(Collectors.toMap(AbstractEnum::name, Function.identity()));
+		Set<String> allEnumNames = new HashSet<>();
+
+		allEnumNames.addAll(persistedValueMap.keySet());
+		allEnumNames.addAll(enumValueMap.keySet());
+
+		allEnumNames.forEach(name -> {
+			PersistedEnum persistedValue = persistedValueMap.get(name);
+			AbstractEnum enumValue = enumValueMap.get(name);
+			if (persistedValue == null) {
+				persistedEnumMapper.insertEnum(tableName, enumValue.name(), enumValue.getDescription(), enumValue.isDefaultValue());
+				LOGGER.info("Created entry {} in table({}).", enumValue.name(), tableName);
 			} else {
-				persistedEnumMapper.insertEnum(tableName, c.name(), c.getDescription(), c.isDefaultValue(), c.isActiveValue());
-				LOGGER.info("Created entry {} in table {} : ", c.name(), tableName);
+				if (enumValue == null) {
+					if (persistedValue.isDefaultValue() || persistedValue.isActiveValue()) {
+						persistedEnumMapper.disablePersistedEnum(tableName, name);
+						LOGGER.info("Disabled unused entry {} in table({} ).", name, tableName);
+					} else {
+						LOGGER.info("Unused entry {} already disabled in table({} ).", name, tableName);
+					}
+				} else {
+					if (persistedValue.isSynchronized(fullyQualifiedClassName, enumValue)) {
+						LOGGER.info("No need to Update entry {} in table({}).", name, tableName);
+					} else {
+						persistedEnumMapper.updateEnum(tableName, enumValue.name(), enumValue.getDescription(), enumValue.isDefaultValue());
+						LOGGER.info("Updated entry {} in table({}).", name, tableName);
+					}
+				}
 			}
 		});
 
