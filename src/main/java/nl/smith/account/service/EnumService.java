@@ -19,7 +19,9 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.stereotype.Service;
 
+import nl.smith.account.Application;
 import nl.smith.account.annotation.PersistedInTable;
+import nl.smith.account.development.PojoOne;
 import nl.smith.account.domain.PersistedEnum;
 import nl.smith.account.enums.AbstractEnum;
 import nl.smith.account.persistence.PersistedEnumMapper;
@@ -32,14 +34,21 @@ public class EnumService {
 
 	private final PersistedEnumMapper persistedEnumMapper;
 
-	public EnumService(PersistedEnumMapper persistedEnumMapper) {
+	@Deprecated
+	private final Application application;
+
+	public EnumService(PersistedEnumMapper persistedEnumMapper, Application application) {
 		this.persistedEnumMapper = persistedEnumMapper;
+		this.application = application;
 	}
 
 	@PostConstruct
 	public void synchronizePersistedEnums() {
-		System.out.println("synchronizePersistedEnums");
 		getPersistedEnumClasses().forEach(enumClass -> synchronizePersistedEnum(enumClass));
+	}
+
+	public PojoOne pojoOne() {
+		return application.pojoOne();
 	}
 
 	public <T extends AbstractEnum> Set<PersistedEnum> getPersistedEnums(Class<T> enumClass) {
