@@ -1,7 +1,6 @@
 package nl.smith.account.service;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -19,13 +18,14 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.stereotype.Service;
 
-import nl.smith.account.Application;
 import nl.smith.account.annotation.PersistedInTable;
-import nl.smith.account.development.PojoOne;
 import nl.smith.account.domain.PersistedEnum;
-import nl.smith.account.enums.AbstractEnum;
+import nl.smith.account.enums.persisted.AbstractPersistedEnum;
 import nl.smith.account.persistence.PersistedEnumMapper;
 
+/** Service to synchronize enums of type in the database.
+ * This service should run after the database has been updated by flyway.
+ */
 @DependsOn("flywayInitializer")
 @Service
 public class EnumService {
@@ -34,12 +34,8 @@ public class EnumService {
 
 	private final PersistedEnumMapper persistedEnumMapper;
 
-	@Deprecated
-	private final Application application;
-
-	public EnumService(PersistedEnumMapper persistedEnumMapper, Application application) {
+	public EnumService(PersistedEnumMapper persistedEnumMapper) {
 		this.persistedEnumMapper = persistedEnumMapper;
-		this.application = application;
 	}
 
 	@PostConstruct
@@ -47,17 +43,13 @@ public class EnumService {
 		getPersistedEnumClasses().forEach(enumClass -> synchronizePersistedEnum(enumClass));
 	}
 
-	public PojoOne pojoOne() {
-		return application.pojoOne();
-	}
-
-	public <T extends AbstractEnum> Set<PersistedEnum> getPersistedEnums(Class<T> enumClass) {
+	public <T extends AbstractPersistedEnum> Set<PersistedEnum> getPersistedEnums(Class<T> enumClass) {
 		return persistedEnumMapper.getPersistedEnums(getTableName(enumClass));
 	}
 
 	@SuppressWarnings("unchecked")
-	protected static List<Class<AbstractEnum>> getPersistedEnumClasses() {
-		List<Class<AbstractEnum>> persistedEnumClasses = new ArrayList<>();
+	protected static List<Class<AbstractPersistedEnum>> getPersistedEnumClasses() {
+		List<Class<AbstractPersistedEnum>> persistedEnumClasses = new ArrayList<>();
 
 		ClassPathScanningCandidateComponentProvider provider = new ClassPathScanningCandidateComponentProvider(false);
 		provider.addIncludeFilter(new AnnotationTypeFilter(PersistedInTable.class));
@@ -65,7 +57,7 @@ public class EnumService {
 		provider.findCandidateComponents("nl.smith.account.enums").forEach(candidateComponent -> {
 			try {
 				String beanClassName = candidateComponent.getBeanClassName();
-				persistedEnumClasses.add((Class<AbstractEnum>) Class.forName(beanClassName));
+				persistedEnumClasses.add((Class<AbstractPersistedEnum>) Class.forName(beanClassName));
 			} catch (ClassNotFoundException e) {
 				throw new IllegalStateException("An unexpected error occurred.", e);
 			}
@@ -74,7 +66,7 @@ public class EnumService {
 		return persistedEnumClasses;
 	}
 
-	private void synchronizePersistedEnum(Class<AbstractEnum> enumClass) {
+	private void synchronizePersistedEnum(Class<AbstractPersistedEnum> enumClass) {
 		validateEnumConstants(enumClass);
 
 		String tableName = getTableName(enumClass);
@@ -82,7 +74,7 @@ public class EnumService {
 
 		Map<String, PersistedEnum> persistedValueMap = persistedEnumMapper.getPersistedEnums(tableName).stream()
 				.collect(Collectors.toMap(PersistedEnum::name, Function.identity()));
-		Map<String, AbstractEnum> enumValueMap = Stream.of(enumClass.getEnumConstants()).collect(Collectors.toMap(AbstractEnum::name, Function.identity()));
+		Map<String, AbstractPersistedEnum> enumValueMap = Stream.of(enumClass.getEnumConstants()).collect(Collectors.toMap(AbstractPersistedEnum::name, Function.identity()));
 		Set<String> allEnumNames = new HashSet<>();
 
 		allEnumNames.addAll(persistedValueMap.keySet());
@@ -90,7 +82,7 @@ public class EnumService {
 
 		allEnumNames.forEach(name -> {
 			PersistedEnum persistedValue = persistedValueMap.get(name);
-			AbstractEnum enumValue = enumValueMap.get(name);
+			AbstractPersistedEnum enumValue = enumValueMap.get(name);
 			if (persistedValue == null) {
 				persistedEnumMapper.insertEnum(tableName, enumValue.name(), enumValue.getDescription(), enumValue.isDefaultValue());
 				LOGGER.info("Created entry {} in table({}).", enumValue.name(), tableName);
@@ -114,7 +106,7 @@ public class EnumService {
 		});
 	}
 
-	private static <T extends AbstractEnum> String getTableName(Class<T> enumClass) {
+	private static <T extends AbstractPersistedEnum> String getTableName(Class<T> enumClass) {
 		PersistedInTable annotation = enumClass.getAnnotation(PersistedInTable.class);
 
 		if (annotation == null) {
@@ -130,9 +122,9 @@ public class EnumService {
 	}
 
 	/** Method validates that there is only one element that is marked as default. */
-	private static void validateEnumConstants(Class<AbstractEnum> annotatedEnumClass) {
+	private static void validateEnumConstants(Class<AbstractPersistedEnum> annotatedEnumClass) {
 
-		List<AbstractEnum> collect = Arrays.asList(annotatedEnumClass.getEnumConstants()).stream().filter(c -> c.isDefaultValue()).collect(Collectors.toList());
+		List<AbstractPersistedEnum> collect = List.of(annotatedEnumClass.getEnumConstants()).stream().filter(c -> c.isDefaultValue()).collect(Collectors.toList());
 
 		if (collect.size() > 1) {
 			List<String> names = new ArrayList<>();

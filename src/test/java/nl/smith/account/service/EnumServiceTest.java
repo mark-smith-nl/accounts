@@ -1,11 +1,10 @@
 package nl.smith.account.service;
 
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,9 +18,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import nl.smith.account.Application;
-import nl.smith.account.enums.AbstractEnum;
-import nl.smith.account.enums.Currency;
-import nl.smith.account.enums.MutationType;
+import nl.smith.account.enums.persisted.AbstractPersistedEnum;
+import nl.smith.account.enums.persisted.Currency;
+import nl.smith.account.enums.persisted.MutationType;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = Application.class)
@@ -36,7 +35,7 @@ public class EnumServiceTest {
 
 	@Test
 	public void getAnnotatedEnumClasses() {
-		List<Class<AbstractEnum>> annotatedEnumClasses = EnumService.getPersistedEnumClasses();
+		List<Class<AbstractPersistedEnum>> annotatedEnumClasses = EnumService.getPersistedEnumClasses();
 
 		assertThat(annotatedEnumClasses.size(), is(2));
 
@@ -44,7 +43,7 @@ public class EnumServiceTest {
 		assertTrue(annotatedEnumClasses.contains(MutationType.class));
 
 		annotatedEnumClasses.forEach(annotatedEnumClass -> {
-			List<AbstractEnum> enumConstants = Arrays.asList(annotatedEnumClass.getEnumConstants());
+			List<AbstractPersistedEnum> enumConstants = List.of(annotatedEnumClass.getEnumConstants());
 			String sql = "select * from " + annotatedEnumClass.getSimpleName();
 			Map<String, Map<String, Object>> tupleMap = asEnumMap(jdbcTemplate.queryForList(sql));
 			assertThat(tupleMap.size(), is(enumConstants.size()));

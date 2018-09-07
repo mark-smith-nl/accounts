@@ -1,15 +1,15 @@
-package nl.smith.account.enums;
+package nl.smith.account.enums.persisted;
 
 import nl.smith.account.annotation.PersistedInTable;
 
 @PersistedInTable()
-public enum AccountNumber implements AbstractEnum {
+public enum AccountNumber implements AbstractPersistedEnum {
 
 	R449937763("Priverekening", true);
 
-	private String description;
+	private final String description;
 
-	private boolean defaultValue;
+	private final boolean defaultValue;
 
 	AccountNumber(String description) {
 		this(description, false);

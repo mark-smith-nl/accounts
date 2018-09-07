@@ -10,19 +10,19 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 
 @Configuration
-@MapperScan(basePackages = { "nl.smith.account.persistence", "nl.smith.account.development.persistence" })
+@MapperScan(basePackages = { "nl.smith.account.persistence" })
 public class DbConfig {
 
 	private final static Logger LOGGER = LoggerFactory.getLogger(DbConfig.class);
 
 	@Bean()
-	public static DataSource dataSource(@Value("${spring.datasource.url}") String url, @Value("${spring.datasource.user}") String user,
+	public static DataSource dataSource(@Value("${spring.datasource.url}") String url, @Value("${spring.datasource.username}") String username,
 			@Value("${spring.datasource.password}") String password, @Value("${spring.datasource.driver-class-name}") String driverClassName) {
 		DataSource dataSource = new DataSource();
 		dataSource.setDriverClassName(driverClassName);
 
 		dataSource.setUrl(url);
-		dataSource.setUsername(user);
+		dataSource.setUsername(username);
 		dataSource.setPassword(password);
 
 		try {

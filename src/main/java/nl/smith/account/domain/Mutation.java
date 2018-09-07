@@ -9,8 +9,8 @@ import java.util.Date;
 
 import javax.validation.constraints.NotNull;
 
-import nl.smith.account.enums.AccountNumber;
-import nl.smith.account.enums.Currency;
+import nl.smith.account.enums.persisted.AccountNumber;
+import nl.smith.account.enums.persisted.Currency;
 
 public class Mutation {
 	private Integer id;

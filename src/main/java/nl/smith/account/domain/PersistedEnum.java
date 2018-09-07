@@ -1,8 +1,12 @@
 package nl.smith.account.domain;
 
-import nl.smith.account.enums.AbstractEnum;
+import nl.smith.account.enums.persisted.AbstractPersistedEnum;
 
-public class PersistedEnum implements AbstractEnum {
+/** <p>An enum value (see: {@link AbstractPersistedEnum}) as persisted in the database.
+ * 
+ * <p>The property active is set to false in case the actual enum does not support the value.
+ * <p>Since database foreign key constraints could exist the value in the database is deactivated. */
+public class PersistedEnum implements AbstractPersistedEnum {
 
 	private String name;
 
@@ -31,12 +35,13 @@ public class PersistedEnum implements AbstractEnum {
 		return activeValue;
 	}
 
-	public boolean isSynchronized(String fullyQualifiedClassName, AbstractEnum abstractEnum) {
-		if (this == abstractEnum || !fullyQualifiedClassName.equals(abstractEnum.getClass().getCanonicalName())) {
+	public boolean isSynchronized(String fullyQualifiedClassName, AbstractPersistedEnum abstractPersistedEnum) {
+		if (this == abstractPersistedEnum || !fullyQualifiedClassName.equals(abstractPersistedEnum.getClass().getCanonicalName())) {
 			return true;
 		}
 
-		return name.equals(abstractEnum.name()) && description.equals(abstractEnum.getDescription()) && defaultValue == abstractEnum.isDefaultValue() && activeValue == true;
+		return name.equals(abstractPersistedEnum.name()) && description.equals(abstractPersistedEnum.getDescription()) && defaultValue == abstractPersistedEnum.isDefaultValue()
+				&& activeValue == true;
 	}
 
 	@Override

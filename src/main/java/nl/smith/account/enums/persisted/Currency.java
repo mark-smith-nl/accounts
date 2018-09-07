@@ -1,18 +1,18 @@
-package nl.smith.account.enums;
+package nl.smith.account.enums.persisted;
 
 import nl.smith.account.annotation.PersistedInTable;
 
 @PersistedInTable
-public enum Currency implements AbstractEnum {
+public enum Currency implements AbstractPersistedEnum {
 
 	HFL("Valuta: Gulden (Oud)"),
 	EUR("Valuta: Euro", true),
 	USD("United States Dollar"),
 	GBP("Valuta: United Kingdom Pound");
 
-	private String description;
+	private final String description;
 
-	private boolean defaultValue;
+	private final boolean defaultValue;
 
 	Currency(String description) {
 		this(description, false);
