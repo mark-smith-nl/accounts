@@ -5,7 +5,9 @@ import static nl.smith.account.enums.AbstractEnum.getEnumByName;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import javax.validation.constraints.NotNull;
 
@@ -36,7 +38,6 @@ public class Mutation {
 	private Integer ordernumber;
 
 	public Mutation() {
-
 	}
 
 	// Used by MyBatis
@@ -97,6 +98,8 @@ public class Mutation {
 
 		private Mutation mutation;
 
+		private List<Mutation> mutations = new ArrayList<>();
+
 		private MutationBuilder() {
 			mutation = new Mutation();
 		}
@@ -115,6 +118,12 @@ public class Mutation {
 
 			public StepTwo setAccountNumber(String accountNumber) {
 				return setAccountNumber(getEnumByName(AccountNumber.class, "R" + accountNumber.replaceAll("[^\\d]", "")));
+			}
+
+			public StepFinal add(Mutation add) {
+				mutation = add;
+
+				return new StepFinal();
 			}
 		}
 
@@ -153,6 +162,10 @@ public class Mutation {
 			public StepFive setBalanceBefore(String balanceBefore) {
 				return setBalanceBefore(new BigDecimal(balanceBefore.replace(",", ".")));
 			}
+
+			public StepFive setBalanceBefore(double balanceBefore) {
+				return setBalanceBefore(new BigDecimal(balanceBefore));
+			}
 		}
 
 		public class StepFive {
@@ -163,6 +176,10 @@ public class Mutation {
 
 			public StepSix setBalanceAfter(String balanceAfter) {
 				return setBalanceAfter(new BigDecimal(balanceAfter.replace(",", ".")));
+			}
+
+			public StepSix setBalanceAfter(double balanceAfter) {
+				return setBalanceAfter(new BigDecimal(balanceAfter));
 			}
 		}
 
@@ -190,6 +207,10 @@ public class Mutation {
 			public StepEight setAmount(String amount) {
 				return setAmount(new BigDecimal(amount.replace(",", ".")));
 			}
+
+			public StepEight setAmount(double amount) {
+				return setAmount(new BigDecimal(amount));
+			}
 		}
 
 		public class StepEight {
@@ -202,6 +223,19 @@ public class Mutation {
 		public class StepFinal {
 			public Mutation get() {
 				return mutation;
+			}
+
+			public List<Mutation> getAll() {
+				mutations.add(mutation);
+
+				return mutations;
+			}
+
+			public StepOne and() {
+				mutations.add(mutation);
+				mutation = new Mutation();
+
+				return new StepOne();
 			}
 		}
 
