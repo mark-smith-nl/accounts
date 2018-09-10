@@ -18,18 +18,21 @@
 		, transactiondate
 		, amount
 		, description
+		, ordernumber
+		, remark
 		)
 		VALUES(
 		#{id}
 		, #{accountNumber}
 		, #{currency}
 		, #{interestDate}
-		,
-		#{balanceBefore}
+		, #{balanceBefore}
 		, #{balanceAfter}
 		, #{transactionDate}
 		, #{amount}
 		, #{description}
+		, #{ordernumber}
+		, #{remark}
 		);
 	</insert>
 

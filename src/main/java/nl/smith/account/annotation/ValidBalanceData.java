@@ -6,14 +6,19 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import javax.validation.Constraint;
+import javax.validation.Payload;
 
 import nl.smith.account.validation.BalanceDataConstraintChecker;
 
-@Target(ElementType.FIELD)
+@Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Constraint(validatedBy = BalanceDataConstraintChecker.class)
 public @interface ValidBalanceData {
-	String message();
+	String message() default "{nl.smith.balanceData.message}";
 
 	double allowableBalanceDifference();
+
+	Class<?>[] groups() default {};
+
+	Class<? extends Payload>[] payload() default {};
 }

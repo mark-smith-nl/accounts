@@ -8,13 +8,17 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import javax.validation.constraints.NotNull;
 
+import nl.smith.account.annotation.ValidBalanceData;
 import nl.smith.account.enums.persisted.AccountNumber;
 import nl.smith.account.enums.persisted.Currency;
 
+@ValidBalanceData(allowableBalanceDifference = 0.01)
 public class Mutation {
+
 	private Integer id;
 
 	@NotNull(message = "{nl.smith.accountNumber.message}")
@@ -23,19 +27,28 @@ public class Mutation {
 	@NotNull(message = "{nl.smith.currency.message}")
 	private Currency currency;
 
+	@NotNull
 	private Date interestDate;
 
+	@NotNull
 	private BigDecimal balanceBefore;
 
+	@NotNull
 	private BigDecimal balanceAfter;
 
+	@NotNull
 	private Date transactionDate;
 
+	@NotNull
 	private BigDecimal amount;
 
+	@NotNull
 	private String description;
 
-	private Integer ordernumber;
+	@NotNull
+	private Integer ordernumber = -1;
+
+	private String remark;
 
 	public Mutation() {
 	}
@@ -44,6 +57,10 @@ public class Mutation {
 	@SuppressWarnings("unused")
 	private void setId(Integer id) {
 		this.id = id;
+	}
+
+	public Integer getId() {
+		return id;
 	}
 
 	public AccountNumber getAccountNumber() {
@@ -78,18 +95,34 @@ public class Mutation {
 		return description;
 	}
 
-	public Integer getId() {
-		return id;
-	}
-
 	public Integer getOrdernumber() {
 		return ordernumber;
 	}
 
+	private String getRemark() {
+		return remark;
+	}
+
+	public Optional<String> getRemarkOption() {
+		return Optional.ofNullable(remark);
+	}
+
 	@Override
 	public String toString() {
-		return "Mutation [accountNumber=" + accountNumber + ", currency=" + currency + ", transactionDate=" + transactionDate + ", balanceBefore=" + balanceBefore
-				+ ", balanceAfter=" + balanceAfter + ", interestDate=" + interestDate + ", amount=" + amount + ", description=" + description + "]";
+		// @formatter:off
+
+		return "Mutation "
+				+ "[accountNumber=" + accountNumber + 
+				", currency=" + currency + 
+				", transactionDate=" + transactionDate + 
+				", balanceBefore=" + balanceBefore + 
+				", balanceAfter=" + balanceAfter + 
+				", interestDate=" + interestDate + 
+				", amount=" + amount + 
+				", description=" + description + 
+				", remark=" + getRemarkOption().orElse("No remark") + 
+				"]";
+		// @formatter:on
 	}
 
 	public static class MutationBuilder {
@@ -120,8 +153,8 @@ public class Mutation {
 				return setAccountNumber(getEnumByName(AccountNumber.class, "R" + accountNumber.replaceAll("[^\\d]", "")));
 			}
 
-			public StepFinal add(Mutation add) {
-				mutation = add;
+			public StepFinal add(Mutation mutation) {
+				MutationBuilder.this.mutation = mutation;
 
 				return new StepFinal();
 			}
@@ -221,6 +254,17 @@ public class Mutation {
 		}
 
 		public class StepFinal {
+
+			public StepFinal setRemark(String remark) {
+				mutation.remark = remark;
+				return this;
+			}
+
+			public StepFinal setOrderNumber(int ordernumber) {
+				mutation.ordernumber = ordernumber;
+				return this;
+			}
+
 			public Mutation get() {
 				return mutation;
 			}

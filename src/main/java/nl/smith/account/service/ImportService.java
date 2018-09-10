@@ -117,6 +117,7 @@ public class ImportService {
         columns.add(new Column("Transactiebedrag", 7, COLUMNTYPE.AMOUNT));
         columns.add(new Column("Omschrijving"    , 8, COLUMNTYPE.OMSCHRIJVING));
         // @formatter:on
+
 		Collections.sort(columns, (c1, c2) -> c1.position.compareTo(c2.position));
 
 		return columns;
@@ -166,7 +167,6 @@ public class ImportService {
 			});
 
 			return String.join(REGEX_FIELDSEPERATOR, elements);
-
 		}
 
 	}
