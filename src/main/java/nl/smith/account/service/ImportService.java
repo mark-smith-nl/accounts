@@ -74,7 +74,7 @@ public class ImportService {
             .setInterestDate(matcher.group((int) columns.get(5).groupPosition))
             .setTransactionDate(matcher.group((int) columns.get(2).groupPosition))
             .setDescription(matcher.group((int) columns.get(7).groupPosition))
-            .get());     
+            .getMutation());     
             // @formatter:on
 		}
 

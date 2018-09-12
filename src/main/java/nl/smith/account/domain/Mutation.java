@@ -5,12 +5,12 @@ import static nl.smith.account.enums.AbstractEnum.getEnumByName;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 import java.util.Optional;
 import java.util.Stack;
 
 import javax.validation.GroupSequence;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Past;
 
 import nl.smith.account.annotation.ValidBalanceData;
 import nl.smith.account.enums.persisted.AccountNumber;
@@ -38,9 +38,11 @@ public class Mutation {
 	@NotNull(groups = FieldChecks.class)
 	private Currency currency;
 
+	@Past(groups = FieldChecks.class)
 	@NotNull(groups = FieldChecks.class)
 	private LocalDate interestDate;
 
+	@Past(groups = FieldChecks.class)
 	@NotNull(groups = FieldChecks.class)
 	private LocalDate transactionDate;
 
@@ -122,17 +124,19 @@ public class Mutation {
 	public String toString() {
 		// @formatter:off
 		
-		return "Mutation "
-				+ "[accountNumber=" + accountNumber + 
-				", currency=" + currency + 
-				", transactionDate=" + transactionDate + 
-				", balanceBefore=" + balanceBefore + 
-				", balanceAfter=" + balanceAfter + 
-				", interestDate=" + interestDate + 
-				", amount=" + amount + 
-				", description=" + description + 
-				", remark=" + getRemarkOption().orElse("No remark")+
-				(getPreviousMutation().isPresent() ? ("Balance-after previous mutation=" + getPreviousMutation().get().getBalanceAfter()) : "") + 
+		return "Mutation [" +
+				"\nbalanceBefore                   = " + balanceBefore + 
+				"\nbalanceAfter                    = " + balanceAfter + 
+				"\namount                          = " + amount +
+				"\naccountNumber                   = " + accountNumber + 
+				"\ncurrency                        = " + currency + 
+				"\ninterestDate                    = " + interestDate + 
+				"\ntransactionDate                 = " + transactionDate + 
+				"\ndescription                     = " + description +
+				"\nordernumber                     = " + ordernumber +
+				"\nremark                          = " + getRemarkOption().orElse("No remark")+
+				(getPreviousMutation().isPresent() ? (
+				"\nBalance-after previous mutation = " + getPreviousMutation().get().getBalanceAfter()) : "") + 
 				"]";
 		// @formatter:on
 	}
@@ -267,23 +271,18 @@ public class Mutation {
 				return this;
 			}
 
-			public Mutation get() {
+			public Mutation getMutation() {
 				finalizeMutation();
 				return mutation;
 			}
 
-			public List<Mutation> getAll() {
+			public Stack<Mutation> getMutations() {
 				finalizeMutation();
-
-				mutations.add(mutation);
-
 				return mutations;
 			}
 
 			public StepSetBalanceAfter add() {
 				finalizeMutation();
-
-				mutations.add(mutation);
 
 				BigDecimal balanceAfter = mutation.balanceAfter;
 
@@ -306,11 +305,7 @@ public class Mutation {
 
 				finalizeMutation();
 
-				mutations.add(mutation);
-
 				MutationBuilder.this.mutation = mutation;
-
-				finalizeMutation();
 
 				return new StepFinal();
 			}
@@ -326,6 +321,8 @@ public class Mutation {
 				} else {
 					mutation.ordernumber = 1;
 				}
+
+				mutations.add(mutation);
 			}
 		}
 

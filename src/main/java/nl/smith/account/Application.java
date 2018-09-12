@@ -44,7 +44,7 @@ public abstract class Application {
 				.setInterestAndTransactionDate(LocalDate.now())
 				.setDescription("200 erbij 1300 ==> 1500")
 				.setRemark("Met een opmerking...")
-				.getAll());
+				.getMutations());
 		// @formatter:on
 
 		mutationService.getMutations().forEach(System.out::println);

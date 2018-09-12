@@ -41,19 +41,19 @@ public class MutationController extends AbstractController {
 				.setBalanceAfter(BigDecimal.TEN)
 				.setAmount(BigDecimal.ZERO)
 				.setInterestAndTransactionDate(LocalDate.now())
-				.setDescription("Osama").get());
+				.setDescription("Osama").getMutation());
 		mutations.add(Mutation.MutationBuilder.create("R449937763",Currency.EUR)
 				.setBalanceBefore(BigDecimal.TEN)
 				.setBalanceAfter(BigDecimal.TEN)
 				.setAmount(BigDecimal.ZERO)
 				.setInterestAndTransactionDate(LocalDate.now())
-				.setDescription("Bokassa").get());
+				.setDescription("Bokassa").getMutation());
 		mutations.add(Mutation.MutationBuilder.create("R449937763", Currency.EUR)
 				.setBalanceBefore(BigDecimal.TEN)
 				.setBalanceAfter(BigDecimal.TEN)
 				.setAmount(BigDecimal.ZERO)
 				.setInterestAndTransactionDate(LocalDate.now())
-				.setDescription("Idi").get());
+				.setDescription("Idi").getMutation());
 		// @formatter:on
 
 		mutationService.persist(mutations);
