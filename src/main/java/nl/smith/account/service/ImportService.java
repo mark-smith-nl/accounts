@@ -6,11 +6,10 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
+import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 
 import org.slf4j.Logger;
@@ -26,15 +25,12 @@ public class ImportService {
 
 	private final MutationService mutationService;
 
-	private final Validator validator;
-
 	private final List<Column> columns;
 
 	private final Pattern pattern;
 
 	public ImportService(MutationService mutationService, Validator validator) {
 		this.mutationService = mutationService;
-		this.validator = validator;
 
 		columns = buildColumns();
 		pattern = Pattern.compile(Column.getRegex(columns));
@@ -48,14 +44,13 @@ public class ImportService {
 		LOGGER.info("Reading file {}", input.toString());
 
 		List<String> records = Files.readAllLines(input);
-		List<Mutation> mutations = new ArrayList<>();
+		Stack<Mutation> mutations = new Stack<>();
 		if (!records.isEmpty()) {
 			LOGGER.info("Read {} mutation lines.", records.size());
 			try {
-				records.forEach(record -> mutations.add(getMutationFromString(record)));
+				records.forEach(record -> getMutationFromStringAndAdd(mutations, record));
 			} catch (IllegalArgumentException e) {
 				LOGGER.warn(e.getMessage());
-				LOGGER.warn("Valid records: {}", mutations.size());
 				return 0;
 			}
 		}
@@ -67,42 +62,24 @@ public class ImportService {
 		return mutations.size();
 	}
 
-	private Mutation getMutationFromString(String record) {
+	private void getMutationFromStringAndAdd(Stack<Mutation> mutations, String record) {
 		Matcher matcher = pattern.matcher(record);
+
 		if (matcher.matches()) {
 			// @formatter:off
-            Mutation mutation = Mutation.MutationBuilder.create()
-            .setAccountNumber(matcher.group((int) columns.get(0).groupPosition))
-            .setCurrency(matcher.group((int) columns.get(1).groupPosition))
-            .setTransactionDate(matcher.group((int) columns.get(2).groupPosition))
+			mutations.add(Mutation.MutationBuilder.create("R" + matcher.group((int) columns.get(0).groupPosition), matcher.group((int) columns.get(1).groupPosition))
             .setBalanceBefore(matcher.group((int) columns.get(3).groupPosition))
             .setBalanceAfter(matcher.group((int) columns.get(4).groupPosition))
-            .setInterestDate(matcher.group((int) columns.get(5).groupPosition))
             .setAmount(matcher.group((int) columns.get(6).groupPosition))
+            .setInterestDate(matcher.group((int) columns.get(5).groupPosition))
+            .setTransactionDate(matcher.group((int) columns.get(2).groupPosition))
             .setDescription(matcher.group((int) columns.get(7).groupPosition))
-            .get();
-
-            validateMutation(mutation);
-            
-            return mutation;
-
+            .get());     
+            // @formatter:on
 		}
 
 		throw new IllegalArgumentException(String.format("\nCould not parse line: %s\nIt does not comply to the regular expression '%s'.'", record, pattern.pattern()));
 
-	}
-
-	private void validateMutation(Mutation mutation) {
-		Set<ConstraintViolation<Mutation>> violations = validator.validate(mutation, new Class[] {});
-		if (violations.size() > 0) {
-			StringBuilder error = new StringBuilder("Invalid mutation");
-			error.append("\n" + mutation);
-			violations.forEach(violation -> {
-				error.append("\n" + violation.getInvalidValue() + "\t" + violation.getMessage());
-			});
-
-			throw new IllegalArgumentException(error.toString());
-		}
 	}
 
 	private static List<Column> buildColumns() {

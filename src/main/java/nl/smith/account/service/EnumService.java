@@ -43,10 +43,6 @@ public class EnumService {
 		getPersistedEnumClasses().forEach(enumClass -> synchronizePersistedEnum(enumClass));
 	}
 
-	public <T extends AbstractPersistedEnum> Set<PersistedEnum> getPersistedEnums(Class<T> enumClass) {
-		return persistedEnumMapper.getPersistedEnums(getTableName(enumClass));
-	}
-
 	@SuppressWarnings("unchecked")
 	protected static List<Class<AbstractPersistedEnum>> getPersistedEnumClasses() {
 		List<Class<AbstractPersistedEnum>> persistedEnumClasses = new ArrayList<>();
@@ -106,14 +102,15 @@ public class EnumService {
 		});
 	}
 
-	private static <T extends AbstractPersistedEnum> String getTableName(Class<T> enumClass) {
+	/** Protected for test purposes */
+	protected static <T extends AbstractPersistedEnum> String getTableName(Class<T> enumClass) {
 		PersistedInTable annotation = enumClass.getAnnotation(PersistedInTable.class);
 
 		if (annotation == null) {
 			throw new IllegalArgumentException(String.format("The enum class %s is not related to any database table.", enumClass.getCanonicalName()));
 		}
 
-		String tableName = annotation.value();
+		String tableName = annotation.tableName();
 		if (tableName.equals("")) {
 			tableName = enumClass.getSimpleName().toLowerCase();
 		}

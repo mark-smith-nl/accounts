@@ -3,54 +3,59 @@ package nl.smith.account.domain;
 import static nl.smith.account.enums.AbstractEnum.getEnumByName;
 
 import java.math.BigDecimal;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
+import java.util.Stack;
 
+import javax.validation.GroupSequence;
 import javax.validation.constraints.NotNull;
 
 import nl.smith.account.annotation.ValidBalanceData;
 import nl.smith.account.enums.persisted.AccountNumber;
 import nl.smith.account.enums.persisted.Currency;
+import nl.smith.account.validation.FieldChecks;
 
+@GroupSequence({ FieldChecks.class, Mutation.class })
 @ValidBalanceData(allowableBalanceDifference = 0.01)
 public class Mutation {
 
 	private Integer id;
 
-	@NotNull(message = "{nl.smith.accountNumber.message}")
-	private AccountNumber accountNumber;
-
-	@NotNull(message = "{nl.smith.currency.message}")
-	private Currency currency;
-
-	@NotNull
-	private Date interestDate;
-
-	@NotNull
+	@NotNull(groups = FieldChecks.class)
 	private BigDecimal balanceBefore;
 
-	@NotNull
+	@NotNull(groups = FieldChecks.class)
 	private BigDecimal balanceAfter;
 
-	@NotNull
-	private Date transactionDate;
-
-	@NotNull
+	@NotNull(groups = FieldChecks.class)
 	private BigDecimal amount;
 
-	@NotNull
+	@NotNull(groups = FieldChecks.class)
+	private AccountNumber accountNumber;
+
+	@NotNull(groups = FieldChecks.class)
+	private Currency currency;
+
+	@NotNull(groups = FieldChecks.class)
+	private LocalDate interestDate;
+
+	@NotNull(groups = FieldChecks.class)
+	private LocalDate transactionDate;
+
+	@NotNull(groups = FieldChecks.class)
 	private String description;
 
-	@NotNull
-	private Integer ordernumber = -1;
+	@NotNull(groups = FieldChecks.class)
+	private Integer ordernumber;
 
 	private String remark;
 
-	public Mutation() {
+	// Not persisted. */
+	private Mutation previousMutation;
+
+	private Mutation() {
 	}
 
 	// Used by MyBatis
@@ -71,7 +76,7 @@ public class Mutation {
 		return currency;
 	}
 
-	public Date getTransactionDate() {
+	public LocalDate getTransactionDate() {
 		return transactionDate;
 	}
 
@@ -83,7 +88,7 @@ public class Mutation {
 		return balanceAfter;
 	}
 
-	public Date getInterestDate() {
+	public LocalDate getInterestDate() {
 		return interestDate;
 	}
 
@@ -99,6 +104,8 @@ public class Mutation {
 		return ordernumber;
 	}
 
+	// Used by MyBatis
+	@SuppressWarnings("unused")
 	private String getRemark() {
 		return remark;
 	}
@@ -107,10 +114,14 @@ public class Mutation {
 		return Optional.ofNullable(remark);
 	}
 
+	public Optional<Mutation> getPreviousMutation() {
+		return Optional.ofNullable(previousMutation);
+	}
+
 	@Override
 	public String toString() {
 		// @formatter:off
-
+		
 		return "Mutation "
 				+ "[accountNumber=" + accountNumber + 
 				", currency=" + currency + 
@@ -120,133 +131,129 @@ public class Mutation {
 				", interestDate=" + interestDate + 
 				", amount=" + amount + 
 				", description=" + description + 
-				", remark=" + getRemarkOption().orElse("No remark") + 
+				", remark=" + getRemarkOption().orElse("No remark")+
+				(getPreviousMutation().isPresent() ? ("Balance-after previous mutation=" + getPreviousMutation().get().getBalanceAfter()) : "") + 
 				"]";
 		// @formatter:on
 	}
 
 	public static class MutationBuilder {
 
-		private static final SimpleDateFormat IMPORT_DATE_FORMAT = new SimpleDateFormat("yyyyMMdd");
+		private static final DateTimeFormatter IMPORT_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd");
 
 		private Mutation mutation;
+		private AccountNumber accountNumber;
+		private Currency currency;
 
-		private List<Mutation> mutations = new ArrayList<>();
+		private Stack<Mutation> mutations = new Stack<>();
 
-		private MutationBuilder() {
+		private MutationBuilder(AccountNumber accountNumber, Currency currency) {
+			this.accountNumber = accountNumber;
+			this.currency = currency;
+
 			mutation = new Mutation();
+
+			mutation.accountNumber = accountNumber;
+			mutation.currency = currency;
 		}
 
-		public static StepOne create() {
-			MutationBuilder mutationBuilder = new MutationBuilder();
-			return mutationBuilder.new StepOne();
+		public static StepSetBalanceBefore create(AccountNumber accountNumber, Currency currency) {
+			MutationBuilder mutationBuilder = new MutationBuilder(accountNumber, currency);
+			return mutationBuilder.new StepSetBalanceBefore();
 		}
 
-		public class StepOne {
-
-			public StepTwo setAccountNumber(AccountNumber accountNumber) {
-				mutation.accountNumber = accountNumber;
-				return new StepTwo();
-			}
-
-			public StepTwo setAccountNumber(String accountNumber) {
-				return setAccountNumber(getEnumByName(AccountNumber.class, "R" + accountNumber.replaceAll("[^\\d]", "")));
-			}
-
-			public StepFinal add(Mutation mutation) {
-				MutationBuilder.this.mutation = mutation;
-
-				return new StepFinal();
-			}
+		public static StepSetBalanceBefore create(String accountNumber, Currency currency) {
+			return create(getEnumByName(AccountNumber.class, accountNumber), currency);
 		}
 
-		public class StepTwo {
-			public StepThree setCurrency(Currency currency) {
-				mutation.currency = currency;
-				return new StepThree();
-			}
-
-			public StepThree setCurrency(String currency) {
-				return setCurrency(getEnumByName(Currency.class, currency));
-			}
+		public static StepSetBalanceBefore create(AccountNumber accountNumber, String currency) {
+			return create(accountNumber, getEnumByName(Currency.class, currency));
 		}
 
-		public class StepThree {
-			public StepFour setTransactionDate(Date transactionDate) {
-				mutation.transactionDate = transactionDate;
-				return new StepFour();
-			}
-
-			public StepFour setTransactionDate(String transactionDate) {
-				try {
-					return setTransactionDate(IMPORT_DATE_FORMAT.parse(transactionDate));
-				} catch (ParseException e) {
-					return setTransactionDate((Date) null);
-				}
-			}
+		public static StepSetBalanceBefore create(String accountNumber, String currency) {
+			return create(getEnumByName(AccountNumber.class, accountNumber), getEnumByName(Currency.class, currency));
 		}
 
-		public class StepFour {
-			public StepFive setBalanceBefore(BigDecimal balanceBefore) {
+		public class StepSetBalanceBefore {
+			public StepSetBalanceAfter setBalanceBefore(BigDecimal balanceBefore) {
 				mutation.balanceBefore = balanceBefore;
-				return new StepFive();
+				return new StepSetBalanceAfter();
 			}
 
-			public StepFive setBalanceBefore(String balanceBefore) {
+			public StepSetBalanceAfter setBalanceBefore(String balanceBefore) {
 				return setBalanceBefore(new BigDecimal(balanceBefore.replace(",", ".")));
 			}
 
-			public StepFive setBalanceBefore(double balanceBefore) {
+			public StepSetBalanceAfter setBalanceBefore(double balanceBefore) {
 				return setBalanceBefore(new BigDecimal(balanceBefore));
 			}
 		}
 
-		public class StepFive {
-			public StepSix setBalanceAfter(BigDecimal balanceAfter) {
+		public class StepSetBalanceAfter {
+			public StepSetAmount setBalanceAfter(BigDecimal balanceAfter) {
 				mutation.balanceAfter = balanceAfter;
-				return new StepSix();
+				return new StepSetAmount();
 			}
 
-			public StepSix setBalanceAfter(String balanceAfter) {
+			public StepSetAmount setBalanceAfter(String balanceAfter) {
 				return setBalanceAfter(new BigDecimal(balanceAfter.replace(",", ".")));
 			}
 
-			public StepSix setBalanceAfter(double balanceAfter) {
+			public StepSetAmount setBalanceAfter(double balanceAfter) {
 				return setBalanceAfter(new BigDecimal(balanceAfter));
 			}
+
 		}
 
-		public class StepSix {
-			public StepSeven setInterestDate(Date interestDate) {
-				mutation.interestDate = interestDate;
-				return new StepSeven();
-			}
-
-			public StepSeven setInterestDate(String interestDate) {
-				try {
-					return setInterestDate(IMPORT_DATE_FORMAT.parse(interestDate));
-				} catch (ParseException e) {
-					return setInterestDate((Date) null);
-				}
-			}
-		}
-
-		public class StepSeven {
-			public StepEight setAmount(BigDecimal amount) {
+		public class StepSetAmount {
+			public StepSetInterestAndOrTransactionDate setAmount(BigDecimal amount) {
 				mutation.amount = amount;
-				return new StepEight();
+				return new StepSetInterestAndOrTransactionDate();
 			}
 
-			public StepEight setAmount(String amount) {
+			public StepSetInterestAndOrTransactionDate setAmount(String amount) {
 				return setAmount(new BigDecimal(amount.replace(",", ".")));
 			}
 
-			public StepEight setAmount(double amount) {
+			public StepSetInterestAndOrTransactionDate setAmount(double amount) {
 				return setAmount(new BigDecimal(amount));
+			}
+
+		}
+
+		public class StepSetInterestAndOrTransactionDate {
+			public StepSetDescription setInterestAndTransactionDate(LocalDate interestAndTransactionDate) {
+				mutation.interestDate = interestAndTransactionDate;
+				mutation.transactionDate = interestAndTransactionDate;
+				return new StepSetDescription();
+			}
+
+			public StepSetDescription setInterestAndTransactionDate(String interestAndTransactionDate) {
+				return setInterestAndTransactionDate(LocalDate.parse(interestAndTransactionDate, IMPORT_DATE_FORMAT));
+			}
+
+			public StepSetTransactionDate setInterestDate(LocalDate interestDate) {
+				mutation.interestDate = interestDate;
+				return new StepSetTransactionDate();
+			}
+
+			public StepSetTransactionDate setInterestDate(String interestDate) {
+				return setInterestDate(LocalDate.parse(interestDate, IMPORT_DATE_FORMAT));
 			}
 		}
 
-		public class StepEight {
+		public class StepSetTransactionDate {
+			public StepSetDescription setTransactionDate(LocalDate transactionDate) {
+				mutation.transactionDate = transactionDate;
+				return new StepSetDescription();
+			}
+
+			public StepSetDescription setTransactionDate(String transactionDate) {
+				return setTransactionDate(LocalDate.parse(transactionDate, IMPORT_DATE_FORMAT));
+			}
+		}
+
+		public class StepSetDescription {
 			public StepFinal setDescription(String description) {
 				mutation.description = description;
 				return new StepFinal();
@@ -260,26 +267,65 @@ public class Mutation {
 				return this;
 			}
 
-			public StepFinal setOrderNumber(int ordernumber) {
-				mutation.ordernumber = ordernumber;
-				return this;
-			}
-
 			public Mutation get() {
+				finalizeMutation();
 				return mutation;
 			}
 
 			public List<Mutation> getAll() {
+				finalizeMutation();
+
 				mutations.add(mutation);
 
 				return mutations;
 			}
 
-			public StepOne and() {
-				mutations.add(mutation);
-				mutation = new Mutation();
+			public StepSetBalanceAfter add() {
+				finalizeMutation();
 
-				return new StepOne();
+				mutations.add(mutation);
+
+				BigDecimal balanceAfter = mutation.balanceAfter;
+
+				mutation = new Mutation();
+				mutation.accountNumber = accountNumber;
+				mutation.currency = currency;
+				mutation.balanceBefore = balanceAfter;
+
+				return new StepSetBalanceAfter();
+			}
+
+			public StepFinal add(Mutation mutation) {
+				// @formatter:off
+				if (MutationBuilder.this.mutation.accountNumber != mutation.accountNumber || 
+						MutationBuilder.this.mutation.currency != mutation.currency	|| 
+						mutation.ordernumber == 0) {
+					throw new IllegalArgumentException();
+				}
+                // @formatter:on
+
+				finalizeMutation();
+
+				mutations.add(mutation);
+
+				MutationBuilder.this.mutation = mutation;
+
+				finalizeMutation();
+
+				return new StepFinal();
+			}
+
+			// Step to determine and set the ordernumber and previous mutatiom.
+			private void finalizeMutation() {
+				if (!mutations.isEmpty()) {
+					Mutation previousMutation = mutations.peek();
+					mutation.previousMutation = previousMutation;
+					if (previousMutation.interestDate.equals(mutation.interestDate)) {
+						mutation.ordernumber = previousMutation.ordernumber + 1;
+					}
+				} else {
+					mutation.ordernumber = 1;
+				}
 			}
 		}
 

@@ -1,8 +1,8 @@
 package nl.smith.account.controller;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.springframework.stereotype.Controller;
@@ -36,32 +36,23 @@ public class MutationController extends AbstractController {
 
 		// @formatter:off
 		mutations.add(
-				Mutation.MutationBuilder.create()
-				.setAccountNumber("449937763")
-				.setCurrency(Currency.EUR)
-				.setTransactionDate(new Date())
+				Mutation.MutationBuilder.create("R449937763", Currency.EUR)
 				.setBalanceBefore(BigDecimal.TEN)
 				.setBalanceAfter(BigDecimal.TEN)
-				.setInterestDate(new Date())
 				.setAmount(BigDecimal.ZERO)
+				.setInterestAndTransactionDate(LocalDate.now())
 				.setDescription("Osama").get());
-		mutations.add(Mutation.MutationBuilder.create()
-				.setAccountNumber("449937763")
-				.setCurrency(Currency.EUR)
-				.setTransactionDate(new Date())
+		mutations.add(Mutation.MutationBuilder.create("R449937763",Currency.EUR)
 				.setBalanceBefore(BigDecimal.TEN)
 				.setBalanceAfter(BigDecimal.TEN)
-				.setInterestDate(new Date())
 				.setAmount(BigDecimal.ZERO)
+				.setInterestAndTransactionDate(LocalDate.now())
 				.setDescription("Bokassa").get());
-		mutations.add(Mutation.MutationBuilder.create()
-				.setAccountNumber("449937763")
-				.setCurrency(Currency.EUR)
-				.setTransactionDate(new Date())
+		mutations.add(Mutation.MutationBuilder.create("R449937763", Currency.EUR)
 				.setBalanceBefore(BigDecimal.TEN)
 				.setBalanceAfter(BigDecimal.TEN)
-				.setInterestDate(new Date())
 				.setAmount(BigDecimal.ZERO)
+				.setInterestAndTransactionDate(LocalDate.now())
 				.setDescription("Idi").get());
 		// @formatter:on
 

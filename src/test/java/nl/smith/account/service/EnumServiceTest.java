@@ -1,71 +1,67 @@
 package nl.smith.account.service;
 
-import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 
-import nl.smith.account.Application;
+import nl.smith.account.AbstractTest;
+import nl.smith.account.domain.Mutation;
+import nl.smith.account.domain.PersistedEnum;
 import nl.smith.account.enums.persisted.AbstractPersistedEnum;
+import nl.smith.account.enums.persisted.AccountNumber;
 import nl.smith.account.enums.persisted.Currency;
 import nl.smith.account.enums.persisted.MutationType;
+import nl.smith.account.persistence.PersistedEnumMapper;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(classes = Application.class)
-@ActiveProfiles("test")
-public class EnumServiceTest {
+public class EnumServiceTest extends AbstractTest {
 
 	@Autowired
-	private EnumService enumService;
-
-	@Autowired
-	private JdbcTemplate jdbcTemplate;
+	private PersistedEnumMapper persistedEnumMapper;
 
 	@Test
-	public void getAnnotatedEnumClasses() {
+	public void synchronizePersistedEnum() {
 		List<Class<AbstractPersistedEnum>> annotatedEnumClasses = EnumService.getPersistedEnumClasses();
 
-		assertThat(annotatedEnumClasses.size(), is(2));
+		assertThat(annotatedEnumClasses.size(), is(3));
 
 		assertTrue(annotatedEnumClasses.contains(Currency.class));
 		assertTrue(annotatedEnumClasses.contains(MutationType.class));
+		assertTrue(annotatedEnumClasses.contains(AccountNumber.class));
 
 		annotatedEnumClasses.forEach(annotatedEnumClass -> {
 			List<AbstractPersistedEnum> enumConstants = List.of(annotatedEnumClass.getEnumConstants());
-			String sql = "select * from " + annotatedEnumClass.getSimpleName();
-			Map<String, Map<String, Object>> tupleMap = asEnumMap(jdbcTemplate.queryForList(sql));
-			assertThat(tupleMap.size(), is(enumConstants.size()));
-			enumConstants.forEach(abstractEnum -> {
-				String enumName = abstractEnum.name();
-				Map<String, Object> persistedEnum = tupleMap.get(enumName);
+			String tableName = EnumService.getTableName(annotatedEnumClass);
+
+			Map<String, PersistedEnum> persistedEnums = persistedEnumMapper.getPersistedEnums(tableName).stream()
+					.collect(Collectors.toMap(persistedEnum -> persistedEnum.name(), persistedEnum -> persistedEnum));
+
+			assertThat(persistedEnums.size(), greaterThanOrEqualTo(enumConstants.size()));
+
+			enumConstants.forEach(abstractPersistedEnum -> {
+				String enumName = abstractPersistedEnum.name();
+				PersistedEnum persistedEnum = persistedEnums.get(enumName);
 				assertNotNull(persistedEnum);
-				assertThat(persistedEnum.get("description"), is(abstractEnum.getDescription()));
-				assertThat(persistedEnum.get("isDefaultValue"), is(abstractEnum.isDefaultValue()));
-				assertThat(persistedEnum.get("isActiveValue"), is(true));
+				assertThat(abstractPersistedEnum.getDescription(), is(persistedEnum.getDescription()));
+				assertThat(abstractPersistedEnum.isDefaultValue(), is(persistedEnum.isDefaultValue()));
+				assertThat(true, is(persistedEnum.isActiveValue()));
+
 			});
+
 		});
 	}
 
-	private static Map<String, Map<String, Object>> asEnumMap(List<Map<String, Object>> queryForList) {
-		Map<String, Map<String, Object>> enumMap = new HashMap<>();
-
-		queryForList.forEach(tuple -> {
-			String enumName = (String) tuple.get("name");
-			enumMap.put(enumName, tuple);
-		});
-		return enumMap;
+	public static void main(String[] args) {
+		Object mutation = null;
+		System.out.println(mutation instanceof Mutation);
 	}
 
 }

@@ -1,6 +1,6 @@
 package nl.smith.account;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -19,25 +19,34 @@ public abstract class Application {
 
 		ConfigurableApplicationContext context = springApplication.run();
 
+		MutationService mutationService = context.getBean(MutationService.class);
+
+		// s mutationService.removeTransactions();
+
 		// @formatter:off
- 
-		Mutation mutation = Mutation.MutationBuilder
-				.create()
-				.setAccountNumber(AccountNumber.R449937763)
-				.setCurrency(Currency.EUR)
-				.setTransactionDate(new Date())
+		mutationService.persist(Mutation.MutationBuilder
+				.create(AccountNumber.R449937763, Currency.EUR)
 				.setBalanceBefore(1250)
 				.setBalanceAfter(1300)
-				.setInterestDate(new Date())
-				.setAmount(150)
-				.setDescription("50 erbij ==> 1300")
+				.setAmount(50)
+				.setInterestAndTransactionDate(LocalDate.now())
+				.setDescription("50 erbij 1250 ==> 1300")
 				.setRemark("Met een opmerking...")
-				.get();
-
+				.add()
+				.setBalanceAfter(1500)
+				.setAmount(200)
+				.setInterestAndTransactionDate(LocalDate.now())
+				.setDescription("200 erbij 1300 ==> 1500")
+				.setRemark("Met een opmerking...")
+				.add()
+				.setBalanceAfter(1500)
+				.setAmount(200)
+				.setInterestAndTransactionDate(LocalDate.now())
+				.setDescription("200 erbij 1300 ==> 1500")
+				.setRemark("Met een opmerking...")
+				.getAll());
 		// @formatter:on
 
-		MutationService mutationService = context.getBean(MutationService.class);
-		mutationService.persist(mutation);
 		mutationService.getMutations().forEach(System.out::println);
 	}
 

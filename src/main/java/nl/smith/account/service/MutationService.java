@@ -1,9 +1,6 @@
 package nl.smith.account.service;
 
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
@@ -37,30 +34,10 @@ public class MutationService {
 
 	public void persist(@NotEmpty @Valid List<Mutation> mutations) {
 		mutations.forEach(this::persist);
-
-		postProcess();
 	}
 
 	public void persist(@NotNull @Valid Mutation mutation) {
 		accountMapper.persist(mutation);
-	}
-
-	private void postProcess() {
-		List<Date> transactionDatesToBePostProcessed = accountMapper.getTransactionDatesToBePostProcessed();
-
-		transactionDatesToBePostProcessed.forEach(date -> {
-			List<Integer> mutationIdsToBeprocessedForDate = accountMapper.getMutationIdsToBeprocessedForDate(date);
-			LOGGER.info("Postprocess {} mutations for date {}.", mutationIdsToBeprocessedForDate.size(), date);
-
-			int ordernumber = 0;
-			for (Integer id : mutationIdsToBeprocessedForDate) {
-				Map<String, Integer> parameterMap = new HashMap<>();
-				parameterMap.put("id", id);
-				parameterMap.put("ordernumber", ++ordernumber);
-				accountMapper.setOrdernumberForMutationWithId(parameterMap);
-			}
-		});
-
 	}
 
 	public List<Mutation> getMutations() {

@@ -5,7 +5,7 @@ import nl.smith.account.enums.persisted.AbstractPersistedEnum;
 /** <p>An enum value (see: {@link AbstractPersistedEnum}) as persisted in the database.
  * 
  * <p>The property active is set to false in case the actual enum does not support the value.
- * <p>Since database foreign key constraints could exist the value in the database is deactivated. */
+ * <p>Since database foreign key constraints could exist the value in the database is deactivated and not deleted. */
 public class PersistedEnum implements AbstractPersistedEnum {
 
 	private String name;

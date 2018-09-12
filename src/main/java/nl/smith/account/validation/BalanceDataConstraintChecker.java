@@ -5,21 +5,21 @@ import java.math.BigDecimal;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import nl.smith.account.annotation.ValidBalanceData;
 import nl.smith.account.domain.Mutation;
 
 public class BalanceDataConstraintChecker implements ConstraintValidator<ValidBalanceData, Mutation> {
 
-	private double allowableBalanceDifference;
+	private final static Logger LOGGER = LoggerFactory.getLogger(BalanceDataConstraintChecker.class);
 
-	private BigDecimal balanceBefore;
-	private BigDecimal balanceAfter;
-	private BigDecimal amount;
+	private double allowableBalanceDifference;
 
 	@Override
 	public void initialize(ValidBalanceData constraintAnnotation) {
 		allowableBalanceDifference = constraintAnnotation.allowableBalanceDifference() + 2;
-
 	}
 
 	@Override
@@ -27,15 +27,30 @@ public class BalanceDataConstraintChecker implements ConstraintValidator<ValidBa
 		boolean valid = true;
 
 		if (mutation != null) {
-			balanceAfter = mutation.getBalanceAfter();
-			balanceBefore = mutation.getBalanceBefore();
-			amount = mutation.getAmount();
+			BigDecimal balanceAfter = mutation.getBalanceAfter();
+			BigDecimal balanceBefore = mutation.getBalanceBefore();
+			BigDecimal amount = mutation.getAmount();
 
-			if (balanceAfter.min(balanceBefore).min(amount).abs().intValue() >= allowableBalanceDifference) {
+			int difference = balanceAfter.subtract(balanceBefore).subtract(amount).abs().intValue();
+
+			if (difference >= allowableBalanceDifference) {
+				LOGGER.debug("Invalid mutation.\nBalance after: {}\nBalance after: {}\nAmount: {}\nDifference: {}", balanceAfter, balanceBefore, amount, difference);
 				valid = false;
 			}
 
+			if (mutation.getPreviousMutation().isPresent()) {
+				balanceAfter = mutation.getPreviousMutation().get().getBalanceAfter();
+				balanceBefore = mutation.getBalanceBefore();
+
+				difference = balanceAfter.subtract(balanceBefore).abs().intValue();
+				if (difference >= allowableBalanceDifference) {
+					LOGGER.debug("Invalid mutation.\nBalance after: {}\nBalance after: {}\nAmount: {}\nDifference: {}", balanceAfter, balanceBefore, amount, difference);
+					valid = false;
+				}
+			}
+
 		}
+
 		return valid;
 	}
 
