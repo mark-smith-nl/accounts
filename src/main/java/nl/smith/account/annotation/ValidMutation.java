@@ -8,11 +8,11 @@ import java.lang.annotation.Target;
 import javax.validation.Constraint;
 import javax.validation.Payload;
 
-import nl.smith.account.validation.MutationDataConstraintChecker;
+import nl.smith.account.validation.MutationValidator;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@Constraint(validatedBy = MutationDataConstraintChecker.class)
+@Constraint(validatedBy = MutationValidator.class)
 public @interface ValidMutation {
 	String message() default "{nl.smith.balanceData.message}";
 

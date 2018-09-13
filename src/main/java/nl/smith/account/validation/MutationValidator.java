@@ -8,7 +8,7 @@ import javax.validation.ConstraintValidatorContext;
 import nl.smith.account.annotation.ValidMutation;
 import nl.smith.account.domain.Mutation;
 
-public class MutationDataConstraintChecker implements ConstraintValidator<ValidMutation, Mutation> {
+public class MutationValidator implements ConstraintValidator<ValidMutation, Mutation> {
 
 	private double allowableBalanceDifference;
 
