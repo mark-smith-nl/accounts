@@ -8,12 +8,12 @@ import java.lang.annotation.Target;
 import javax.validation.Constraint;
 import javax.validation.Payload;
 
-import nl.smith.account.validation.BalanceDataConstraintChecker;
+import nl.smith.account.validation.MutationDataConstraintChecker;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@Constraint(validatedBy = BalanceDataConstraintChecker.class)
-public @interface ValidBalanceData {
+@Constraint(validatedBy = MutationDataConstraintChecker.class)
+public @interface ValidMutation {
 	String message() default "{nl.smith.balanceData.message}";
 
 	double allowableBalanceDifference();

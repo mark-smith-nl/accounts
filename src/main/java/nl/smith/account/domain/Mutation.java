@@ -10,15 +10,15 @@ import java.util.Stack;
 
 import javax.validation.GroupSequence;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Past;
+import javax.validation.constraints.PastOrPresent;
 
-import nl.smith.account.annotation.ValidBalanceData;
+import nl.smith.account.annotation.ValidMutation;
 import nl.smith.account.enums.persisted.AccountNumber;
 import nl.smith.account.enums.persisted.Currency;
 import nl.smith.account.validation.FieldChecks;
 
 @GroupSequence({ FieldChecks.class, Mutation.class })
-@ValidBalanceData(allowableBalanceDifference = 0.01)
+@ValidMutation(allowableBalanceDifference = 0.01)
 public class Mutation {
 
 	private Integer id;
@@ -38,11 +38,11 @@ public class Mutation {
 	@NotNull(groups = FieldChecks.class)
 	private Currency currency;
 
-	@Past(groups = FieldChecks.class)
+	@PastOrPresent(groups = FieldChecks.class)
 	@NotNull(groups = FieldChecks.class)
 	private LocalDate interestDate;
 
-	@Past(groups = FieldChecks.class)
+	@PastOrPresent(groups = FieldChecks.class)
 	@NotNull(groups = FieldChecks.class)
 	private LocalDate transactionDate;
 
@@ -194,6 +194,7 @@ public class Mutation {
 		}
 
 		public class StepSetBalanceAfter {
+
 			public StepSetAmount setBalanceAfter(BigDecimal balanceAfter) {
 				mutation.balanceAfter = balanceAfter;
 				return new StepSetAmount();
@@ -281,28 +282,17 @@ public class Mutation {
 				return mutations;
 			}
 
-			public StepSetBalanceAfter add() {
+			public StepSetAmount add() {
 				finalizeMutation();
-
-				BigDecimal balanceAfter = mutation.balanceAfter;
 
 				mutation = new Mutation();
 				mutation.accountNumber = accountNumber;
 				mutation.currency = currency;
-				mutation.balanceBefore = balanceAfter;
 
-				return new StepSetBalanceAfter();
+				return new StepSetAmount();
 			}
 
 			public StepFinal add(Mutation mutation) {
-				// @formatter:off
-				if (MutationBuilder.this.mutation.accountNumber != mutation.accountNumber || 
-						MutationBuilder.this.mutation.currency != mutation.currency	|| 
-						mutation.ordernumber == 0) {
-					throw new IllegalArgumentException();
-				}
-                // @formatter:on
-
 				finalizeMutation();
 
 				MutationBuilder.this.mutation = mutation;
@@ -312,14 +302,23 @@ public class Mutation {
 
 			// Step to determine and set the ordernumber and previous mutatiom.
 			private void finalizeMutation() {
+				mutation.ordernumber = 1;
 				if (!mutations.isEmpty()) {
 					Mutation previousMutation = mutations.peek();
 					mutation.previousMutation = previousMutation;
-					if (previousMutation.interestDate.equals(mutation.interestDate)) {
-						mutation.ordernumber = previousMutation.ordernumber + 1;
+
+					if (mutation.balanceBefore == null) {
+						mutation.balanceBefore = previousMutation.balanceAfter;
 					}
-				} else {
-					mutation.ordernumber = 1;
+
+					if (previousMutation.interestDate.equals(mutation.interestDate)) {
+						mutation.ordernumber += previousMutation.ordernumber;
+					}
+
+				}
+
+				if (mutation.balanceAfter == null && mutation.balanceBefore != null && mutation.amount != null) {
+					mutation.balanceAfter = mutation.balanceBefore.subtract(mutation.amount);
 				}
 
 				mutations.add(mutation);

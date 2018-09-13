@@ -5,22 +5,24 @@ import java.math.BigDecimal;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
-import nl.smith.account.annotation.ValidBalanceData;
+import nl.smith.account.annotation.ValidMutation;
 import nl.smith.account.domain.Mutation;
 
-public class BalanceDataConstraintChecker implements ConstraintValidator<ValidBalanceData, Mutation> {
+public class MutationDataConstraintChecker implements ConstraintValidator<ValidMutation, Mutation> {
 
 	private double allowableBalanceDifference;
 
 	@Override
-	public void initialize(ValidBalanceData constraintAnnotation) {
+	public void initialize(ValidMutation constraintAnnotation) {
 		allowableBalanceDifference = constraintAnnotation.allowableBalanceDifference() + 2;
 	}
 
 	@Override
 	public boolean isValid(Mutation mutation, ConstraintValidatorContext context) {
 		boolean valid = true;
-
+		System.out.println("===> " + context.getDefaultConstraintMessageTemplate());
+		String hello = "World";
+		context.buildConstraintViolationWithTemplate("{osama.message}" + hello).addPropertyNode("aaas.ddd").addConstraintViolation();
 		if (mutation != null) {
 			BigDecimal balanceAfter = mutation.getBalanceAfter();
 			BigDecimal balanceBefore = mutation.getBalanceBefore();

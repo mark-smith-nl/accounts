@@ -42,7 +42,7 @@ public class MutationIsValidTest extends AbstractTest {
 			.setBalanceAfter(200)
 			.setAmount(100)
 			.setInterestAndTransactionDate(LocalDate.now())
-			.setDescription("Wrong balance after")
+			.setDescription("No account number")
 			.getMutation();
 		// @formatter:on
 
@@ -58,7 +58,7 @@ public class MutationIsValidTest extends AbstractTest {
 			.setBalanceAfter(200)
 			.setAmount(100)
 			.setInterestAndTransactionDate(LocalDate.now())
-			.setDescription("Wrong balance after")
+			.setDescription("No currency")
 			.getMutation();
 		// @formatter:on
 
@@ -74,7 +74,7 @@ public class MutationIsValidTest extends AbstractTest {
 			.setBalanceAfter(200)
 			.setAmount(100)
 			.setInterestAndTransactionDate(LocalDate.now())
-			.setDescription("Wrong balance after")
+			.setDescription("No balance before")
 			.getMutation();
 		// @formatter:on
 
@@ -90,7 +90,7 @@ public class MutationIsValidTest extends AbstractTest {
 			.setBalanceAfter((BigDecimal) null)
 			.setAmount(100)
 			.setInterestAndTransactionDate(LocalDate.now())
-			.setDescription("Wrong balance after")
+			.setDescription("No balance after")
 			.getMutation();
 		// @formatter:on
 
@@ -106,7 +106,7 @@ public class MutationIsValidTest extends AbstractTest {
 			.setBalanceAfter(200)
 			.setAmount((BigDecimal) null)
 			.setInterestAndTransactionDate(LocalDate.now())
-			.setDescription("Wrong balance after")
+			.setDescription("No amount")
 			.getMutation();	
 		// @formatter:on
 
@@ -122,7 +122,7 @@ public class MutationIsValidTest extends AbstractTest {
 			.setBalanceAfter(200)
 			.setAmount((BigDecimal) null)
 			.setInterestAndTransactionDate((LocalDate) null)
-			.setDescription("Wrong balance after")
+			.setDescription("No interest and transaction date")
 			.getMutation();		
 		// @formatter:on
 
@@ -138,7 +138,7 @@ public class MutationIsValidTest extends AbstractTest {
 			.setBalanceAfter(200)
 			.setAmount(100)
 			.setInterestAndTransactionDate(LocalDate.now().plusDays(1))
-			.setDescription("Wrong balance after")
+			.setDescription("Future interest and transaction date")
 			.getMutation();		
 		// @formatter:on
 
@@ -146,7 +146,7 @@ public class MutationIsValidTest extends AbstractTest {
 	}
 
 	@Test
-	public void mutation_noDesription() {
+	public void mutation_noDescription() {
 		// @formatter:off
 		Mutation mutation = Mutation.MutationBuilder
 			.create(AccountNumber.R449937763, Currency.EUR)
@@ -263,5 +263,57 @@ public class MutationIsValidTest extends AbstractTest {
 		Mutation firstMutation = mutations.pop();
 
 		assertThat(firstMutation, isValid);
+	}
+
+	@Test
+	public void testOrderNumberSameDate() {
+		// @formatter:off
+		Stack<Mutation> mutations = Mutation.MutationBuilder.create(AccountNumber.R449937763, Currency.EUR)
+			.setBalanceBefore(100)
+			.setBalanceAfter(300)
+			.setAmount(200)
+			.setInterestAndTransactionDate(LocalDate.now())
+			.setDescription("First transaction")
+			.add()
+			.setAmount(300)
+			.setInterestAndTransactionDate(LocalDate.now())
+			.setDescription("Second transaction")
+			.add()
+			.setAmount(400)
+			.setInterestAndTransactionDate(LocalDate.now())
+			.setDescription("Third transaction")
+			.getMutations();
+		// @formatter:on
+
+		assertThat(mutations.size(), is(3));
+		assertThat(mutations.get(0).getOrdernumber(), is(1));
+		assertThat(mutations.get(1).getOrdernumber(), is(2));
+		assertThat(mutations.get(2).getOrdernumber(), is(3));
+	}
+
+	@Test
+	public void testOrderNumberDiffferentDates() {
+		// @formatter:off
+		Stack<Mutation> mutations = Mutation.MutationBuilder.create(AccountNumber.R449937763, Currency.EUR)
+			.setBalanceBefore(100)
+			.setBalanceAfter(300)
+			.setAmount(200)
+			.setInterestAndTransactionDate(LocalDate.now().minusDays(1))
+			.setDescription("First transaction")
+			.add()
+			.setAmount(300)
+			.setInterestAndTransactionDate(LocalDate.now())
+			.setDescription("Second transaction")
+			.add()
+			.setAmount(400)
+			.setInterestAndTransactionDate(LocalDate.now())
+			.setDescription("Third transaction")
+			.getMutations();
+		// @formatter:on
+
+		assertThat(mutations.size(), is(3));
+		assertThat(mutations.get(0).getOrdernumber(), is(1));
+		assertThat(mutations.get(1).getOrdernumber(), is(1));
+		assertThat(mutations.get(2).getOrdernumber(), is(2));
 	}
 }
