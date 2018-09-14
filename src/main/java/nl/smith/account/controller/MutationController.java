@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import nl.smith.account.domain.Mutation;
 import nl.smith.account.enums.persisted.Currency;
+import nl.smith.account.service.AuthenticatedUserService;
 import nl.smith.account.service.MutationService;
-import nl.smith.account.web.AuthenticatedUserService;
 
 @Controller
 @RequestMapping("mutation")

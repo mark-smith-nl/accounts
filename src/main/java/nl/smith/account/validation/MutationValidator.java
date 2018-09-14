@@ -20,9 +20,8 @@ public class MutationValidator implements ConstraintValidator<ValidMutation, Mut
 	@Override
 	public boolean isValid(Mutation mutation, ConstraintValidatorContext context) {
 		boolean valid = true;
-		System.out.println("===> " + context.getDefaultConstraintMessageTemplate());
-		String hello = "World";
-		context.buildConstraintViolationWithTemplate("{osama.message}" + hello).addPropertyNode("aaas.ddd").addConstraintViolation();
+
+		// TODO extra validation. Use context
 		if (mutation != null) {
 			BigDecimal balanceAfter = mutation.getBalanceAfter();
 			BigDecimal balanceBefore = mutation.getBalanceBefore();
@@ -43,7 +42,6 @@ public class MutationValidator implements ConstraintValidator<ValidMutation, Mut
 					valid = false;
 				}
 			}
-
 		}
 
 		return valid;

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="nl.smith.account.persistence.MutationFileMapper">
+	<resultMap id="mutationfile" type="nl.smith.account.domain.MutationFile"
+		autoMapping="true">
+		<result property="absoluteFilePath" column="absolute_file_path"/>
+		<result property="fileBytes" column="file_bytes"/>
+		</resultMap>
+		
+	<insert id="persist" parameterType="nl.smith.account.domain.MutationFile">
+		<selectKey keyProperty="id" resultType="int" order="BEFORE">SELECT
+			nextval('account.mutationfile_id_seq')
+		</selectKey>
+		INSERT INTO mutationfile(
+		id
+		, absolute_file_path
+		, file_bytes
+		, checksum
+		)
+		VALUES(
+		#{id}
+		, #{absoluteFilePath}
+		, #{fileBytes}
+		, #{checksum}
+		);
+	</insert>
+
+	<select id="getMutationFileByAbsoluteFilePath" parameterType="nl.smith.account.domain.MutationFile" resultMap="mutationfile">
+		SELECT *
+		FROM mutationfile
+		where absolute_file_path = #{absoluteFilePath}
+	</select>
+	
+	<select id="getMutationFileById" parameterType="long" resultMap="mutationfile">
+		SELECT *
+		FROM mutationfile
+		where id = #{id}
+	</select>
+</mapper>

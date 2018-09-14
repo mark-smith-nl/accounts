@@ -82,7 +82,7 @@ public class MutationIsValidTest extends AbstractTest {
 	}
 
 	@Test
-	public void mutation_noBalanceAfter() {
+	public void mutation_nullBalanceAfter() {
 		// @formatter:off
 		Mutation mutation = Mutation.MutationBuilder
 			.create(AccountNumber.R449937763, Currency.EUR)
@@ -94,7 +94,27 @@ public class MutationIsValidTest extends AbstractTest {
 			.getMutation();
 		// @formatter:on
 
-		assertThat(mutation, not(isValid));
+		assertThat(mutation, isValid);
+
+		assertThat(mutation.getBalanceAfter(), is(new BigDecimal(200)));
+	}
+
+	@Test
+	public void mutation_noBalanceAfter() {
+		// @formatter:off
+		Mutation mutation = Mutation.MutationBuilder
+			.create(AccountNumber.R449937763, Currency.EUR)
+			.setBalanceBefore(100)
+			.noBalanceAfter()
+			.setAmount(100)
+			.setInterestAndTransactionDate(LocalDate.now())
+			.setDescription("No balance after")
+			.getMutation();
+		// @formatter:on
+
+		assertThat(mutation, isValid);
+
+		assertThat(mutation.getBalanceAfter(), is(new BigDecimal(200)));
 	}
 
 	@Test
@@ -286,9 +306,13 @@ public class MutationIsValidTest extends AbstractTest {
 		// @formatter:on
 
 		assertThat(mutations.size(), is(3));
+
 		assertThat(mutations.get(0).getOrdernumber(), is(1));
+		assertThat(mutations.get(0), isValid);
 		assertThat(mutations.get(1).getOrdernumber(), is(2));
+		assertThat(mutations.get(1), isValid);
 		assertThat(mutations.get(2).getOrdernumber(), is(3));
+		assertThat(mutations.get(2), isValid);
 	}
 
 	@Test
@@ -312,8 +336,12 @@ public class MutationIsValidTest extends AbstractTest {
 		// @formatter:on
 
 		assertThat(mutations.size(), is(3));
+
 		assertThat(mutations.get(0).getOrdernumber(), is(1));
+		assertThat(mutations.get(0), isValid);
 		assertThat(mutations.get(1).getOrdernumber(), is(1));
+		assertThat(mutations.get(1), isValid);
 		assertThat(mutations.get(2).getOrdernumber(), is(2));
+		assertThat(mutations.get(2), isValid);
 	}
 }

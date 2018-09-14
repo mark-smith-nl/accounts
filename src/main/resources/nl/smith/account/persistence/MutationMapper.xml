@@ -36,36 +36,11 @@
 		);
 	</insert>
 
-	<select id="getTransactionDatesToBePostProcessed" resultType="date">
-		SELECT DISTINCT transactiondate
-		FROM mutation
-		WHERE
-		ordernumber IS NULL
-	</select>
-
-	<select id="getMutationIdsToBeprocessedForDate" parameterType="date"
-		resultType="integer">
-		SELECT id
-		FROM mutation
-		WHERE
-		transactiondate = #{value} AND ordernumber IS NULL
-		ORDER BY
-		id
-	</select>
-
 	<select id="getMutations" resultMap="mutation">
 		SELECT *
 		FROM mutation
 		ORDER BY transactiondate, ordernumber
 	</select>
-
-	<update id="setOrdernumberForMutationWithId" parameterType="map">
-		UPDATE mutation
-		SET
-		ordernumber = #{ordernumber}
-		WHERE
-		id = #{id}
-	</update>
 
 	<delete id="deleteAll">
 		DELETE FROM mutation

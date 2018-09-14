@@ -1,6 +1,6 @@
 package nl.smith.account.controller;
 
-import nl.smith.account.web.AuthenticatedUserService;
+import nl.smith.account.service.AuthenticatedUserService;
 
 public class AbstractController {
 

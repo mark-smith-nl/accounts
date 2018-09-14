@@ -1,4 +1,4 @@
-package nl.smith.account.web;
+package nl.smith.account.service;
 
 import java.util.Set;
 import java.util.stream.Collectors;

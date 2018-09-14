@@ -14,7 +14,6 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import nl.smith.account.AbstractTest;
-import nl.smith.account.domain.Mutation;
 import nl.smith.account.domain.PersistedEnum;
 import nl.smith.account.enums.persisted.AbstractPersistedEnum;
 import nl.smith.account.enums.persisted.AccountNumber;
@@ -57,11 +56,6 @@ public class EnumServiceTest extends AbstractTest {
 			});
 
 		});
-	}
-
-	public static void main(String[] args) {
-		Object mutation = null;
-		System.out.println(mutation instanceof Mutation);
 	}
 
 }

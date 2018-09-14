@@ -57,6 +57,7 @@ public class Mutation {
 	// Not persisted. */
 	private Mutation previousMutation;
 
+	// Used by MyBatis
 	private Mutation() {
 	}
 
@@ -195,6 +196,10 @@ public class Mutation {
 
 		public class StepSetBalanceAfter {
 
+			public StepSetAmount noBalanceAfter() {
+				return new StepSetAmount();
+			}
+
 			public StepSetAmount setBalanceAfter(BigDecimal balanceAfter) {
 				mutation.balanceAfter = balanceAfter;
 				return new StepSetAmount();
@@ -318,7 +323,7 @@ public class Mutation {
 				}
 
 				if (mutation.balanceAfter == null && mutation.balanceBefore != null && mutation.amount != null) {
-					mutation.balanceAfter = mutation.balanceBefore.subtract(mutation.amount);
+					mutation.balanceAfter = mutation.balanceBefore.add(mutation.amount);
 				}
 
 				mutations.add(mutation);

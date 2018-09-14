@@ -10,8 +10,6 @@ import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.validation.Validator;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -29,7 +27,7 @@ public class ImportService {
 
 	private final Pattern pattern;
 
-	public ImportService(MutationService mutationService, Validator validator) {
+	public ImportService(MutationService mutationService) {
 		this.mutationService = mutationService;
 
 		columns = buildColumns();
@@ -37,7 +35,7 @@ public class ImportService {
 	}
 
 	public void cleanDatabase() {
-		mutationService.removeTransactions();
+		mutationService.removeMutations();
 	}
 
 	public int importFromFile(Path input) throws IOException {

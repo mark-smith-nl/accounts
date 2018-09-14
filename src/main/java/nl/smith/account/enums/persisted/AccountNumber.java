@@ -2,7 +2,7 @@ package nl.smith.account.enums.persisted;
 
 import nl.smith.account.annotation.PersistedInTable;
 
-@PersistedInTable(tableName = "osama")
+@PersistedInTable
 public enum AccountNumber implements AbstractPersistedEnum {
 
 	R449937763("Priverekening", true);
