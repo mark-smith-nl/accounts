@@ -10,6 +10,7 @@ import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -41,6 +42,16 @@ public class ImportService {
 	public int importFromFile(Path input) throws IOException {
 		LOGGER.info("Reading file {}", input.toString());
 
+		if (input.toString().toUpperCase().endsWith("TAB")) {
+			return importFromTABFile(input);
+		} else if (input.toString().toUpperCase().endsWith("PDF")) {
+			return importFromPdfFile(input);
+		}
+
+		throw new IllegalArgumentException(String.format("Unkwown filetype for file %s.", input.toString()));
+	}
+
+	private int importFromTABFile(Path input) throws IOException {
 		List<String> records = Files.readAllLines(input);
 		Stack<Mutation> mutations = new Stack<>();
 		if (!records.isEmpty()) {
@@ -60,6 +71,11 @@ public class ImportService {
 		return mutations.size();
 	}
 
+	private int importFromPdfFile(Path input) throws InvalidPasswordException, IOException {
+
+		return 0;
+	}
+
 	private void getMutationFromStringAndAdd(Stack<Mutation> mutations, String record) {
 		Matcher matcher = pattern.matcher(record);
 
@@ -74,10 +90,9 @@ public class ImportService {
             .setDescription(matcher.group((int) columns.get(7).groupPosition))
             .getMutation());     
             // @formatter:on
+		} else {
+			throw new IllegalArgumentException(String.format("\nCould not parse line: %s\nIt does not comply to the regular expression '%s'.'", record, pattern.pattern()));
 		}
-
-		throw new IllegalArgumentException(String.format("\nCould not parse line: %s\nIt does not comply to the regular expression '%s'.'", record, pattern.pattern()));
-
 	}
 
 	private static List<Column> buildColumns() {
@@ -114,7 +129,7 @@ public class ImportService {
 	}
 
 	private static class Column {
-		private static final String REGEX_FIELDSEPERATOR = "\\t";
+		private static final String REGEX_FIELDSEPERATOR = "\t";
 
 		private final String name;
 
