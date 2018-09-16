@@ -72,7 +72,6 @@ public class ImportService {
 	}
 
 	private int importFromPdfFile(Path input) throws InvalidPasswordException, IOException {
-
 		return 0;
 	}
 
