@@ -1,5 +1,6 @@
 package nl.smith.account.service;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -10,12 +11,18 @@ import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
+import org.apache.pdfbox.text.PDFTextStripper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import nl.smith.account.domain.Mutation;
+import nl.smith.account.domain.RawMutation;
+import nl.smith.account.domain.RawMutation.RawMutationBuilder;
+import nl.smith.account.domain.RawMutation.RawMutationBuilder.StepFinal;
+import nl.smith.account.enums.persisted.AccountNumber;
 
 @Service
 public class ImportService {
@@ -72,7 +79,79 @@ public class ImportService {
 	}
 
 	private int importFromPdfFile(Path input) throws InvalidPasswordException, IOException {
-		return 0;
+		String text = null;
+		PDDocument document = PDDocument.load(new File("/home/mark/tmp/account/test.pdf"));
+		if (!document.isEncrypted()) {
+			PDFTextStripper stripper = new PDFTextStripper();
+			text = stripper.getText(document);
+		}
+		document.close();
+
+		String[] pages = text.split("\nPagina \\d+ van \\d+");
+
+		String page = pages[1];
+
+		String[] lines = page.split("\n");
+
+		boolean startRecord = false;
+		boolean insertRecord = false;
+
+		String transactionDate = null;
+		String description = null;
+		String amount = null;
+
+		Pattern patternStart = Pattern.compile("\\d{2}\\-\\d{2}\\-\\d{4}");
+		Pattern patternEnd = Pattern.compile("\\d{1,}\\,\\d{2}$");
+
+		StepFinal stepFinal = null;
+
+		Stack<RawMutation> rawMutations = new Stack<>();
+
+		for (int i = 0; i < lines.length; i++) {
+			String line = lines[i];
+			if (!startRecord) {
+				Matcher matcherStart = patternStart.matcher(line);
+				if (matcherStart.find()) {
+					transactionDate = matcherStart.group();
+					Matcher matcherEnd = patternEnd.matcher(line);
+					if (matcherEnd.find()) {
+						amount = matcherEnd.group();
+						description = line.substring(matcherStart.end(), matcherEnd.start()).trim();
+						insertRecord = true;
+					} else {
+						startRecord = true;
+						description = line.substring(matcherStart.end()).trim();
+					}
+				}
+			} else {
+				Matcher matcherEnd = patternEnd.matcher(line);
+				if (matcherEnd.find()) {
+					amount = matcherEnd.group();
+					startRecord = false;
+					insertRecord = true;
+				} else {
+					description += " " + line.trim();
+				}
+			}
+
+			if (insertRecord == true) {
+				if (stepFinal == null) {
+					stepFinal = RawMutationBuilder.create(AccountNumber.R449937763).setAmount(amount).setTransactionDate(transactionDate).setDescription(description);
+				} else {
+					stepFinal.add().setAmount(amount).setTransactionDate(transactionDate).setDescription(description);
+				}
+				insertRecord = false;
+			}
+
+		}
+
+		if (stepFinal != null) {
+			rawMutations = stepFinal.getRawMutations();
+		}
+
+		mutationService.persistRawMutations(rawMutations);
+
+		return rawMutations.size();
 	}
 
 	private void getMutationFromStringAndAdd(Stack<Mutation> mutations, String record) {

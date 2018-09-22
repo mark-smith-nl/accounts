@@ -36,6 +36,28 @@
 		);
 	</insert>
 
+	<insert id="persistRawMutation" parameterType="nl.smith.account.domain.Mutation">
+		<selectKey keyProperty="id" resultType="int" order="BEFORE">SELECT
+			nextval('account.rawmutation_id_seq')
+		</selectKey>
+		INSERT INTO rawmutation(
+		id
+		, accountnumber
+		, transactiondate
+		, amount
+		, description
+		, ordernumber
+		)
+		VALUES(
+		#{id}
+		, #{accountNumber}
+		, #{transactionDate}
+		, #{amount}
+		, #{description}
+		, #{ordernumber}
+		);
+	</insert>
+	
 	<select id="getMutations" resultMap="mutation">
 		SELECT *
 		FROM mutation

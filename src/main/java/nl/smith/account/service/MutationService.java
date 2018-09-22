@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import nl.smith.account.domain.Mutation;
+import nl.smith.account.domain.RawMutation;
 import nl.smith.account.persistence.MutationMapper;
 
 @Validated
@@ -34,6 +35,14 @@ public class MutationService {
 
 	public void persist(@NotNull @Valid Mutation mutation) {
 		accountMapper.persist(mutation);
+	}
+
+	public void persistRawMutations(@NotEmpty @Valid List<RawMutation> rawMutations) {
+		rawMutations.forEach(this::persistRawMutation);
+	}
+
+	public void persistRawMutation(@NotNull @Valid RawMutation rawMutation) {
+		accountMapper.persistRawMutation(rawMutation);
 	}
 
 	public List<Mutation> getMutations() {

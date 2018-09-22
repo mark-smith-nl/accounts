@@ -1,6 +1,7 @@
 package nl.smith.account;
 
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 
 import org.springframework.boot.SpringApplication;
@@ -11,6 +12,7 @@ import nl.smith.account.domain.Mutation;
 import nl.smith.account.domain.MutationFile;
 import nl.smith.account.enums.persisted.AccountNumber;
 import nl.smith.account.enums.persisted.Currency;
+import nl.smith.account.service.ImportService;
 import nl.smith.account.service.MutationFileService;
 import nl.smith.account.service.MutationService;
 
@@ -21,10 +23,13 @@ public abstract class Application {
 
 	private final MutationFileService mutationFileService;
 
-	public Application(MutationService mutationService, MutationFileService mutationFileService) {
+	private final ImportService importService;
+
+	public Application(MutationService mutationService, MutationFileService mutationFileService, ImportService importService) {
 		super();
 		this.mutationService = mutationService;
 		this.mutationFileService = mutationFileService;
+		this.importService = importService;
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -34,15 +39,32 @@ public abstract class Application {
 
 		Application application = context.getBean(Application.class);
 
+		application.importService.importFromFile(Paths.get("/home/mark/tmp/account/test.pdf"));
+
+		// application.insertMutation();
 		// application.insertMutations();
 
-		application.getMutations();
-		application.addFile();
-		application.getMutationFileByAbsoluteFilePath();
+		// application.getMutations();
+		// application.addFile();
+		// application.getMutationFileByAbsoluteFilePath();
 	}
 
 	private void removeMutations() {
 		mutationService.removeMutations();
+	}
+
+	private void insertMutation() {
+		// @formatter:off
+				mutationService.persist(Mutation.MutationBuilder
+						.create(AccountNumber.R449937763, Currency.EUR)
+						.setBalanceBefore(1250)
+						.setBalanceAfter(1300)
+						.setAmount(50)
+						.setInterestAndTransactionDate(LocalDate.now())
+						.setDescription("50 erbij 1250 ==> 1300")
+						.setRemark("Met een opmerking...")
+						.getMutation());
+		// @formatter:on
 	}
 
 	private void insertMutations() {
@@ -54,17 +76,17 @@ public abstract class Application {
 						.setAmount(50)
 						.setInterestAndTransactionDate(LocalDate.now())
 						.setDescription("50 erbij 1250 ==> 1300")
-						.setRemark("Met een opmerking...")
+						.setRemark("Met een opmerking...1")
 						.add()
 						.setAmount(200)
 						.setInterestAndTransactionDate(LocalDate.now())
 						.setDescription("200 erbij 1300 ==> 1500")
-						.setRemark("Met een opmerking...")
+						.setRemark("Met een opmerking...2")
 						.add()
 						.setAmount(200)
 						.setInterestAndTransactionDate(LocalDate.now())
 						.setDescription("200 erbij 1300 ==> 1500")
-						.setRemark("Met een opmerking...")
+						.setRemark("Met een opmerking...3")
 						.getMutations());
 				// @formatter:on
 	}

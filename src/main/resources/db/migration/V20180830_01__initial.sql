@@ -7,23 +7,6 @@ DROP FUNCTION IF EXISTS deactivate_enumvalues(varchar);
 DROP FUNCTION IF EXISTS insert_enumvalue(varchar, varchar, varchar, boolean, boolean);
 DROP FUNCTION IF EXISTS dropAll();
 
-CREATE OR REPLACE FUNCTION dropAll()
-RETURNS VOID AS
-$$
-BEGIN
-	DROP TABLE    IF EXISTS flyway_schema_history;
-	DROP TABLE    IF EXISTS mutation;
-	DROP TABLE    IF EXISTS currency;
-	DROP TABLE    IF EXISTS mutationtype;
-	DROP TABLE    IF EXISTS accountnumber;
-	DROP FUNCTION IF EXISTS create_enumtable_type(varchar, varchar);
-	DROP FUNCTION IF EXISTS deactivate_enumvalues(varchar);
-	DROP FUNCTION IF EXISTS insert_enumvalue(varchar, varchar, varchar, boolean, boolean);
-	DROP FUNCTION IF EXISTS dropAll();
-	RAISE NOTICE 'All tables and functions are deleted. You can not run this function again.';
-END
-$$ LANGUAGE plpgsql;
-
 CREATE OR REPLACE FUNCTION create_enumtable_type(table_name varchar(30), table_description varchar(100))
 RETURNS VOID AS
 $$
