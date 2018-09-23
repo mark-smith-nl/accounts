@@ -36,11 +36,11 @@
 		);
 	</insert>
 
-	<insert id="persistRawMutation" parameterType="nl.smith.account.domain.Mutation">
+	<insert id="persistSimpleMutation" parameterType="nl.smith.account.domain.SimpleMutation">
 		<selectKey keyProperty="id" resultType="int" order="BEFORE">SELECT
-			nextval('account.rawmutation_id_seq')
+			nextval('account.simplemutation_id_seq')
 		</selectKey>
-		INSERT INTO rawmutation(
+		INSERT INTO simplemutation(
 		id
 		, accountnumber
 		, transactiondate

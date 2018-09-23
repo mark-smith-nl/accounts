@@ -6,7 +6,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import nl.smith.account.domain.Mutation;
-import nl.smith.account.domain.RawMutation;
+import nl.smith.account.domain.SimpleMutation;
 
 public interface MutationMapper {
 
@@ -16,5 +16,5 @@ public interface MutationMapper {
 
 	List<Mutation> getMutations();
 
-	void persistRawMutation(@NotNull @Valid RawMutation rawMutation);
+	void persistSimpleMutation(@NotNull @Valid SimpleMutation simpleMutation);
 }

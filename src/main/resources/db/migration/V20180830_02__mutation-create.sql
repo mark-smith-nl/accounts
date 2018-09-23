@@ -9,8 +9,8 @@ CREATE TABLE IF NOT EXISTS mutation(id         bigserial
 , balancebefore   numeric(10,2) NOT NULL
 , balanceafter    numeric(10,2) NOT NULL
 , transactiondate date          NOT NULL
+, ordernumber     smallint      DEFAULT -1
 , amount          numeric(10,2) NOT NULL
 , description     varchar(512)  NOT NULL
-, ordernumber     smallint      DEFAULT -1
 , created_at      TIMESTAMP     NOT NULL DEFAULT now()
 );

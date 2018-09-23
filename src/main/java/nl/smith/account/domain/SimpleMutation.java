@@ -13,7 +13,7 @@ import javax.validation.constraints.PastOrPresent;
 
 import nl.smith.account.enums.persisted.AccountNumber;
 
-public class RawMutation {
+public class SimpleMutation {
 
 	private Integer id;
 
@@ -36,10 +36,10 @@ public class RawMutation {
 	private Integer ordernumber;
 
 	// Not persisted. */
-	private RawMutation previousRawMutation;
+	private SimpleMutation previousSimpleMutation;
 
 	// Used by MyBatis
-	private RawMutation() {
+	private SimpleMutation() {
 	}
 
 	// Used by MyBatis
@@ -76,8 +76,8 @@ public class RawMutation {
 		return ordernumber;
 	}
 
-	public Optional<RawMutation> getPreviousRawMutation() {
-		return Optional.ofNullable(previousRawMutation);
+	public Optional<SimpleMutation> getPreviousSimpleMutation() {
+		return Optional.ofNullable(previousSimpleMutation);
 	}
 
 	@Override
@@ -91,34 +91,34 @@ public class RawMutation {
 				"\ntransactionDate                 = " + transactionDate + 
 				"\ndescription                     = " + description +
 				"\nordernumber                     = " + ordernumber +
-				(getPreviousRawMutation().isPresent() ? (
-				"\namount previous mutation = " + getPreviousRawMutation().get().getAmount()) : "") + 
+				(getPreviousSimpleMutation().isPresent() ? (
+				"\namount previous mutation = " + getPreviousSimpleMutation().get().getAmount()) : "") + 
 				"]";
 		// @formatter:on
 	}
 
-	public static class RawMutationBuilder {
+	public static class SimpleMutationBuilder {
 
 		private static final DateTimeFormatter IMPORT_DATE_FORMAT = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
-		private RawMutation rawMutation;
+		private SimpleMutation simpleMutation;
 		private AccountNumber accountNumber;
 		private int pageNumber;
 
-		private Stack<RawMutation> rawMutations = new Stack<>();
+		private Stack<SimpleMutation> simpleMutations = new Stack<>();
 
-		private RawMutationBuilder(AccountNumber accountNumber, int pageNumber) {
+		private SimpleMutationBuilder(AccountNumber accountNumber, int pageNumber) {
 			this.accountNumber = accountNumber;
 			this.pageNumber = pageNumber;
 
-			rawMutation = new RawMutation();
+			simpleMutation = new SimpleMutation();
 
-			rawMutation.accountNumber = accountNumber;
-			rawMutation.pageNumber = pageNumber;
+			simpleMutation.accountNumber = accountNumber;
+			simpleMutation.pageNumber = pageNumber;
 		}
 
 		public static StepSetAmount create(AccountNumber accountNumber, int pageNumber) {
-			RawMutationBuilder mutationBuilder = new RawMutationBuilder(accountNumber, pageNumber);
+			SimpleMutationBuilder mutationBuilder = new SimpleMutationBuilder(accountNumber, pageNumber);
 			return mutationBuilder.new StepSetAmount();
 		}
 
@@ -128,7 +128,7 @@ public class RawMutation {
 
 		public class StepSetAmount {
 			public StepSetTransactionDate setAmount(BigDecimal amount) {
-				rawMutation.amount = amount;
+				simpleMutation.amount = amount;
 				return new StepSetTransactionDate();
 			}
 
@@ -144,7 +144,7 @@ public class RawMutation {
 
 		public class StepSetTransactionDate {
 			public StepSetDescription setTransactionDate(LocalDate transactionDate) {
-				rawMutation.transactionDate = transactionDate;
+				simpleMutation.transactionDate = transactionDate;
 				return new StepSetDescription();
 			}
 
@@ -155,55 +155,55 @@ public class RawMutation {
 
 		public class StepSetDescription {
 			public StepFinal setDescription(String description) {
-				rawMutation.description = description;
+				simpleMutation.description = description;
 				return new StepFinal();
 			}
 		}
 
 		public class StepFinal {
 
-			public RawMutation getRawMutation() {
+			public SimpleMutation getSimpleMutation() {
 				finalizeMutation();
-				return rawMutation;
+				return simpleMutation;
 			}
 
-			public Stack<RawMutation> getRawMutations() {
+			public Stack<SimpleMutation> getSimpleMutations() {
 				finalizeMutation();
-				return rawMutations;
+				return simpleMutations;
 			}
 
 			public StepSetAmount add() {
 				finalizeMutation();
 
-				rawMutation = new RawMutation();
-				rawMutation.accountNumber = accountNumber;
-				rawMutation.pageNumber = pageNumber;
+				simpleMutation = new SimpleMutation();
+				simpleMutation.accountNumber = accountNumber;
+				simpleMutation.pageNumber = pageNumber;
 
 				return new StepSetAmount();
 			}
 
-			public StepFinal add(RawMutation rawMutation) {
+			public StepFinal add(SimpleMutation simpleMutation) {
 				finalizeMutation();
 
-				RawMutationBuilder.this.rawMutation = rawMutation;
+				SimpleMutationBuilder.this.simpleMutation = simpleMutation;
 
 				return new StepFinal();
 			}
 
 			// Step to determine and set the ordernumber and previous mutatiom.
 			private void finalizeMutation() {
-				rawMutation.ordernumber = 1;
-				if (!rawMutations.isEmpty()) {
-					RawMutation previousRawMutation = rawMutations.peek();
-					rawMutation.previousRawMutation = previousRawMutation;
+				simpleMutation.ordernumber = 1;
+				if (!simpleMutations.isEmpty()) {
+					SimpleMutation previousSimpleMutation = simpleMutations.peek();
+					simpleMutation.previousSimpleMutation = previousSimpleMutation;
 
-					if (previousRawMutation.transactionDate.equals(rawMutation.transactionDate)) {
-						rawMutation.ordernumber += previousRawMutation.ordernumber;
+					if (previousSimpleMutation.transactionDate.equals(simpleMutation.transactionDate)) {
+						simpleMutation.ordernumber += previousSimpleMutation.ordernumber;
 					}
 
 				}
 
-				rawMutations.add(rawMutation);
+				simpleMutations.add(simpleMutation);
 			}
 		}
 

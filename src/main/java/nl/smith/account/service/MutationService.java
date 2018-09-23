@@ -3,7 +3,6 @@ package nl.smith.account.service;
 import java.util.List;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 import org.springframework.stereotype.Service;
@@ -11,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import nl.smith.account.domain.Mutation;
-import nl.smith.account.domain.RawMutation;
+import nl.smith.account.domain.SimpleMutation;
 import nl.smith.account.persistence.MutationMapper;
 
 @Validated
@@ -29,7 +28,7 @@ public class MutationService {
 		accountMapper.deleteAll();
 	}
 
-	public void persist(@NotEmpty @Valid List<Mutation> mutations) {
+	public void persist(@NotNull @Valid List<Mutation> mutations) {
 		mutations.forEach(this::persist);
 	}
 
@@ -37,12 +36,12 @@ public class MutationService {
 		accountMapper.persist(mutation);
 	}
 
-	public void persistRawMutations(@NotEmpty @Valid List<RawMutation> rawMutations) {
-		rawMutations.forEach(this::persistRawMutation);
+	public void persistSimpleMutations(@NotNull @Valid List<SimpleMutation> simpleMutations) {
+		simpleMutations.forEach(this::persistSimpleMutation);
 	}
 
-	public void persistRawMutation(@NotNull @Valid RawMutation rawMutation) {
-		accountMapper.persistRawMutation(rawMutation);
+	public void persistSimpleMutation(@NotNull @Valid SimpleMutation simpleMutation) {
+		accountMapper.persistSimpleMutation(simpleMutation);
 	}
 
 	public List<Mutation> getMutations() {

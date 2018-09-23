@@ -1,5 +1,6 @@
 package nl.smith.account;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.time.LocalDate;
@@ -8,6 +9,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 
+import nl.smith.account.development.Pojo;
+import nl.smith.account.development.PojoService;
 import nl.smith.account.domain.Mutation;
 import nl.smith.account.domain.MutationFile;
 import nl.smith.account.enums.persisted.AccountNumber;
@@ -24,12 +27,14 @@ public abstract class Application {
 	private final MutationFileService mutationFileService;
 
 	private final ImportService importService;
+	private final PojoService pojoService;
 
-	public Application(MutationService mutationService, MutationFileService mutationFileService, ImportService importService) {
+	public Application(MutationService mutationService, MutationFileService mutationFileService, ImportService importService, PojoService pojoService) {
 		super();
 		this.mutationService = mutationService;
 		this.mutationFileService = mutationFileService;
 		this.importService = importService;
+		this.pojoService = pojoService;
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -39,7 +44,9 @@ public abstract class Application {
 
 		Application application = context.getBean(Application.class);
 
-		application.importService.importFromFile(Paths.get("/home/mark/tmp/account/test.pdf"));
+		// application.testPojoService();
+
+		application.insertSimpleMutations();
 
 		// application.insertMutation();
 		// application.insertMutations();
@@ -47,6 +54,11 @@ public abstract class Application {
 		// application.getMutations();
 		// application.addFile();
 		// application.getMutationFileByAbsoluteFilePath();
+	}
+
+	private void testPojoService() {
+		Pojo pojo = new Pojo();
+		pojoService.savePojo(pojo);
 	}
 
 	private void removeMutations() {
@@ -65,6 +77,15 @@ public abstract class Application {
 						.setRemark("Met een opmerking...")
 						.getMutation());
 		// @formatter:on
+	}
+
+	private void insertSimpleMutations() {
+		try {
+			importService.importFromFile(Paths.get("/home/mark/tmp/account/test.pdf"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	private void insertMutations() {
