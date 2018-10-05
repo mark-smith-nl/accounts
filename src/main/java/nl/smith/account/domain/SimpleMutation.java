@@ -12,39 +12,40 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.PastOrPresent;
 
 import nl.smith.account.enums.persisted.AccountNumber;
+import nl.smith.account.validation.FieldChecks;
 
 public class SimpleMutation {
 
-	private Integer id;
+	protected Integer id;
 
 	private int pageNumber;
 
-	@NotNull
-	private BigDecimal amount;
+	@NotNull(groups = FieldChecks.class)
+	protected BigDecimal amount;
 
-	@NotNull
-	private AccountNumber accountNumber;
+	@NotNull(groups = FieldChecks.class)
+	protected AccountNumber accountNumber;
 
-	@PastOrPresent
-	@NotNull
-	private LocalDate transactionDate;
+	@PastOrPresent(groups = FieldChecks.class)
+	@NotNull(groups = FieldChecks.class)
+	protected LocalDate transactionDate;
 
-	@NotNull
-	private String description;
+	@NotNull(groups = FieldChecks.class)
+	protected String description;
 
-	@NotNull
-	private Integer ordernumber;
+	@NotNull(groups = FieldChecks.class)
+	protected Integer ordernumber;
 
 	// Not persisted. */
 	private SimpleMutation previousSimpleMutation;
 
 	// Used by MyBatis
-	private SimpleMutation() {
+	protected SimpleMutation() {
 	}
 
 	// Used by MyBatis
 	@SuppressWarnings("unused")
-	private void setId(Integer id) {
+	protected void setId(Integer id) {
 		this.id = id;
 	}
 
