@@ -1,0 +1,33 @@
+#
+# A fatal error has been detected by the Java Runtime Environment:
+#
+#  SIGSEGV (0xb) at pc=0x00007f99e8b88fb2, pid=15877, tid=15910
+#
+# JRE version: OpenJDK Runtime Environment (9.0+11) (build 9.0.4+11)
+# Java VM: OpenJDK 64-Bit Server VM (9.0.4+11, mixed mode, tiered, compressed oops, g1 gc, linux-amd64)
+# Problematic frame:
+# C  [libjimage.so+0x3fb2]  ImageStrings::find(Endian*, char const*, int*, unsigned int)+0x42
+#
+# Core dump will be written. Default location: Core dumps may be processed with "/usr/share/apport/apport %p %s %c %d %P" (or dumping to /home/mark/java/code/prive/accounts/core.15877)
+#
+# If you would like to submit a bug report, please visit:
+#   http://bugreport.java.com/bugreport/crash.jsp
+#
+
+---------------  S U M M A R Y ------------
+
+Command Line: -agentlib:jdwp=transport=dt_socket,suspend=y,address=localhost:36239 -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=37629 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=localhost -Dspring.liveBeansView.mbeanDomain -Dspring.application.admin.enabled=true -Djava.security.egd=file:/dev/./urandom -Xverify:none -XX:TieredStopAtLevel=1 -Dfile.encoding=UTF-8 nl.smith.account.development.validation.Main --spring.output.ansi.enabled=always
+
+Host: AMD Athlon(tm) II X2 220 Processor, 2 cores, 3G, Ubuntu 16.04.4 LTS
+Time: Mon Oct  1 23:24:42 2018 CEST elapsed time: 7616 seconds (0d 2h 6m 56s)
+
+---------------  T H R E A D  ---------------
+
+Current thread (0x00007f99e4560000):  JavaThread "RMI TCP Accept-37629" daemon [_thread_in_vm, id=15910, stack(0x00007f99a8dc5000,0x00007f99a8ec6000)]
+
+Stack: [0x00007f99a8dc5000,0x00007f99a8ec6000],  sp=0x00007f99a8ec3310,  free space=1016k
+Native frames: (J=compiled Java code, A=aot compiled Java code, j=interpreted, Vv=VM code, C=native code)
+C  [libjimage.so+0x3fb2]  ImageStrings::find(Endian*, char const*, int*, unsigned int)+0x42
+C  [libjimage.so+0x4b8c]  ImageFileReader::find_location_index(char const*, unsigned long long*) const+0x3c
+C  [libjimage.so+0x505a]  JIMAGE_FindResource+0xba
+V  [libjvm.so+0x59579e]

@@ -19,9 +19,8 @@ import nl.smith.account.validation.FieldChecks;
 
 @GroupSequence({ FieldChecks.class, Mutation.class })
 @ValidMutation(allowableBalanceDifference = 0.01)
-public class Mutation {
-
-	private Integer id;
+@NotNull
+public class Mutation extends SimpleMutation {
 
 	@NotNull(groups = FieldChecks.class)
 	private BigDecimal balanceBefore;
@@ -30,27 +29,11 @@ public class Mutation {
 	private BigDecimal balanceAfter;
 
 	@NotNull(groups = FieldChecks.class)
-	private BigDecimal amount;
-
-	@NotNull(groups = FieldChecks.class)
-	private AccountNumber accountNumber;
-
-	@NotNull(groups = FieldChecks.class)
 	private Currency currency;
 
 	@PastOrPresent(groups = FieldChecks.class)
 	@NotNull(groups = FieldChecks.class)
 	private LocalDate interestDate;
-
-	@PastOrPresent(groups = FieldChecks.class)
-	@NotNull(groups = FieldChecks.class)
-	private LocalDate transactionDate;
-
-	@NotNull(groups = FieldChecks.class)
-	private String description;
-
-	@NotNull(groups = FieldChecks.class)
-	private Integer ordernumber;
 
 	private String remark;
 
@@ -61,26 +44,8 @@ public class Mutation {
 	private Mutation() {
 	}
 
-	// Used by MyBatis
-	@SuppressWarnings("unused")
-	private void setId(Integer id) {
-		this.id = id;
-	}
-
-	public Integer getId() {
-		return id;
-	}
-
-	public AccountNumber getAccountNumber() {
-		return accountNumber;
-	}
-
 	public Currency getCurrency() {
 		return currency;
-	}
-
-	public LocalDate getTransactionDate() {
-		return transactionDate;
 	}
 
 	public BigDecimal getBalanceBefore() {
@@ -93,18 +58,6 @@ public class Mutation {
 
 	public LocalDate getInterestDate() {
 		return interestDate;
-	}
-
-	public BigDecimal getAmount() {
-		return amount;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public Integer getOrdernumber() {
-		return ordernumber;
 	}
 
 	// Used by MyBatis

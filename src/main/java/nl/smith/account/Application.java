@@ -9,8 +9,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 
-import nl.smith.account.development.Pojo;
-import nl.smith.account.development.PojoService;
+import nl.smith.account.development.validation.PojoService;
 import nl.smith.account.domain.Mutation;
 import nl.smith.account.domain.MutationFile;
 import nl.smith.account.enums.persisted.AccountNumber;
@@ -44,9 +43,7 @@ public abstract class Application {
 
 		Application application = context.getBean(Application.class);
 
-		// application.testPojoService();
-
-		application.insertSimpleMutations();
+		// application.insertSimpleMutations();
 
 		// application.insertMutation();
 		// application.insertMutations();
@@ -54,11 +51,6 @@ public abstract class Application {
 		// application.getMutations();
 		// application.addFile();
 		// application.getMutationFileByAbsoluteFilePath();
-	}
-
-	private void testPojoService() {
-		Pojo pojo = new Pojo();
-		pojoService.savePojo(pojo);
 	}
 
 	private void removeMutations() {
