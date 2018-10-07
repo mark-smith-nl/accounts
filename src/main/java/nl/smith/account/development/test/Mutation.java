@@ -17,34 +17,34 @@ public class Mutation {
 
 	private Integer id;
 
-	@NotNull(groups = { RawPojoFields.class }, message = "Field amount is required")
+	@NotNull(groups = { RawMutationFields.class }, message = "Field amount is required")
 	private AccountNumber accountNumber;
 
 	private int pageNumber;
 
-	@NotNull(groups = { RawPojoFields.class }, message = "Field amount is required")
+	@NotNull(groups = { RawMutationFields.class }, message = "Field amount is required")
 	private BigDecimal amount;
 
-	@NotNull(groups = { RawPojoFields.class }, message = "Field transactionDate is required")
-	@PastOrPresent(groups = { RawPojoFields.class })
+	@NotNull(groups = { RawMutationFields.class }, message = "Field transactionDate is required")
+	@PastOrPresent(groups = { RawMutationFields.class })
 	private LocalDate transactionDate;
 
-	@NotNull(groups = { RawPojoFields.class }, message = "Field description is required")
+	@NotNull(groups = { RawMutationFields.class }, message = "Field description is required")
 	private String description;
 
-	@NotNull(groups = { RawPojoFields.class }, message = "Field ordernumber is required")
+	@NotNull(groups = { RawMutationFields.class }, message = "Field ordernumber is required")
 	private Integer ordernumber;
 
-	@NotNull(groups = { RawPojoFields.class }, message = "Field balanceBefore is required")
+	@NotNull(groups = { RawMutationFields.class }, message = "Field balanceBefore is required")
 	private BigDecimal balanceBefore;
 
-	@NotNull(groups = { RawPojoFields.class }, message = "Field balanceAfter is required")
+	@NotNull(groups = { RawMutationFields.class }, message = "Field balanceAfter is required")
 	private BigDecimal balanceAfter;
 
-	@NotNull(groups = { RawPojoFields.class }, message = "Field currency is required")
+	@NotNull(groups = { RawMutationFields.class }, message = "Field currency is required")
 	private Currency currency;
 
-	@PastOrPresent(groups = { RawPojoFields.class }, message = "Field interestDate is required")
+	@PastOrPresent(groups = { RawMutationFields.class }, message = "Field interestDate is required")
 	@NotNull(groups = FieldChecks.class)
 	private LocalDate interestDate;
 
@@ -114,10 +114,10 @@ public class Mutation {
 		return previousMutation;
 	}
 
-	interface CompletePojoFields {
+	interface CompleteMutationFields {
 	}
 
-	interface RawPojoFields {
+	interface RawMutationFields {
 	}
 
 	interface StepAfterStepSetDescription {

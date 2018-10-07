@@ -9,7 +9,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 
-import nl.smith.account.development.validation.PojoService;
 import nl.smith.account.domain.Mutation;
 import nl.smith.account.domain.MutationFile;
 import nl.smith.account.enums.persisted.AccountNumber;
@@ -26,14 +25,12 @@ public abstract class Application {
 	private final MutationFileService mutationFileService;
 
 	private final ImportService importService;
-	private final PojoService pojoService;
 
-	public Application(MutationService mutationService, MutationFileService mutationFileService, ImportService importService, PojoService pojoService) {
+	public Application(MutationService mutationService, MutationFileService mutationFileService, ImportService importService) {
 		super();
 		this.mutationService = mutationService;
 		this.mutationFileService = mutationFileService;
 		this.importService = importService;
-		this.pojoService = pojoService;
 	}
 
 	public static void main(String[] args) throws Exception {

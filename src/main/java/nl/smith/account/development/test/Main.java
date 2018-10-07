@@ -1,9 +1,6 @@
 package nl.smith.account.development.test;
 
-<<<<<<< HEAD
 import java.time.LocalDate;
-=======
->>>>>>> 8cb01b139253789c47be042f84379a9e3c56654b
 import java.util.Set;
 
 import javax.validation.ConstraintViolation;
@@ -14,12 +11,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 
-<<<<<<< HEAD
 import nl.smith.account.development.test.Mutation.MutationBuilder;
 import nl.smith.account.development.test.Mutation.MutationBuilder.FullMutation;
-=======
-import nl.smith.account.development.test.Pojo.PojoBuilder.CompletePojo;
->>>>>>> 8cb01b139253789c47be042f84379a9e3c56654b
 
 @SpringBootApplication()
 public class Main {
@@ -35,8 +28,7 @@ public class Main {
 		Main main = context.getBean(Main.class);
 
 		Validator validator = main.validator;
-<<<<<<< HEAD
-		Mutation pojo = null;
+		Mutation mutation = null;
 
 		String value = "-";
 // @formatter:off
@@ -44,18 +36,18 @@ public class Main {
 				.setAmount(5)
 				.setTransactionDate(LocalDate.now())
 				.setDescription("")
-				.setBalanceBefore("")
-				.setBalanceAfter("");
-			// Should be parameterized	.
+				.setBalanceBefore(0)
+				.setBalanceAfter(0);
+		 
 		 MutationBuilder addMutationCopyBalanceAfter = setBalanceAfter.addMutationCopyBalanceAfter();
 				
 		// @formatter:on	
 
-		Set<ConstraintViolation<Mutation>> constraintValidations = validator.validate(pojo, Mutation.RawPojoFields.class);
+		Set<ConstraintViolation<Mutation>> constraintValidations = validator.validate(mutation, Mutation.RawMutationFields.class);
 
 		constraintValidations.forEach(System.out::println);
 
-		constraintValidations = validator.validate(pojo, Mutation.CompletePojoFields.class);
+		constraintValidations = validator.validate(mutation, Mutation.CompleteMutationFields.class);
 
 		constraintValidations.forEach(System.out::println);
 
@@ -70,27 +62,6 @@ public class Main {
 		constraintValidations.forEach(constraintValidation -> {
 			System.out.println("=====>" + constraintValidation.getMessage());
 		});
-=======
-
-		String value = "-";
-// @formatter:off
-		Pojo pojo = Pojo.PojoBuilder.getBuilder(CompletePojo.class)
-				.setFieldOne(value)
-				.setFieldTwo(value)
-				.setFieldThree(value)
-				.setFieldFour(value)
-				.setFieldFive123(value)
-				.get();
-		// @formatter:on	
-
-		Set<ConstraintViolation<Pojo>> constraintValidations = validator.validate(pojo, Pojo.ValidateRawPojo.class);
-
-		constraintValidations.forEach(System.out::println);
-
-		constraintValidations = validator.validate(pojo, Pojo.ValidateCompletePojo.class);
-
-		constraintValidations.forEach(System.out::println);
->>>>>>> 8cb01b139253789c47be042f84379a9e3c56654b
 	}
 
 }
